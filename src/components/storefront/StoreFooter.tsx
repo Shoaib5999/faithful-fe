@@ -1,19 +1,16 @@
-import { useEffect, useRef, useState, type FormEvent } from "react";
-import { Facebook, Instagram } from "lucide-react";
+import { useEffect, useRef } from "react";
+import { Facebook, Instagram, Mail, MapPin, Phone } from "lucide-react";
 import { FooterNavLink } from "@/components/storefront/FooterNavLink";
 import { StoreLogo } from "@/components/storefront/StoreLogo";
-import { validateStoreEmail } from "@/lib/store-auth";
-import { subscribeNewsletter } from "@/services/store-newsletter-service";
 import { ensureGsapPlugins, gsap } from "@/components/storefront/motion/gsap";
 import {
-  FOOTER_CUSTOMER_SERVICE_LINKS,
-  FOOTER_INFORMATION_LINKS,
-  FOOTER_LEGAL_LINKS,
-  FOOTER_NEWSLETTER,
-  FOOTER_QUICK_LINKS,
+  FOOTER_CATEGORY_LINKS,
+  FOOTER_MAIN_LINKS,
   SOCIAL_LINKS,
+  STORE_CONTACT_EMAIL,
+  STORE_LOCATION,
 } from "@/constants/storefront.constants";
-import { StoreHomeSection, type StoreSectionTheme } from "@/components/storefront/StoreHomeSection";
+import { StoreHomeSection } from "@/components/storefront/StoreHomeSection";
 
 function WhatsAppIcon({ className }: { className?: string }) {
   return (
@@ -29,82 +26,18 @@ const SOCIAL_ICON = {
   whatsapp: WhatsAppIcon,
 } as const;
 
-const LINK_COLUMNS = [
-  { title: "Legal", links: FOOTER_LEGAL_LINKS },
-  { title: "Support", links: FOOTER_CUSTOMER_SERVICE_LINKS },
-  { title: "Info", links: FOOTER_INFORMATION_LINKS },
-  { title: "Explore", links: FOOTER_QUICK_LINKS },
-] as const;
-
-function UnderlineInput({
-  id,
-  value,
-  onChange,
-  placeholder,
-  type = "text",
-  required,
-  disabled,
-}: {
-  id: string;
-  value: string;
-  onChange: (v: string) => void;
-  placeholder: string;
-  type?: string;
-  required?: boolean;
-  disabled?: boolean;
-}) {
+function FooterColumnTitle({ children }: { children: React.ReactNode }) {
   return (
-    <input
-      id={id}
-      type={type}
-      required={required}
-      disabled={disabled}
-      value={value}
-      onChange={(e) => onChange(e.target.value)}
-      placeholder={placeholder}
-      className="w-full border-0 border-b border-[var(--section-border)] bg-transparent pb-2.5 font-store-body text-base text-[var(--section-fg)] outline-none placeholder:text-[var(--section-fg-muted)] focus:border-[var(--section-fg)] transition-colors duration-300"
-    />
+    <p className="mb-4 font-store-body text-sm font-bold uppercase tracking-[0.18em] text-white">
+      {children}
+    </p>
   );
 }
 
-type StoreFooterProps = {
-  theme?: StoreSectionTheme;
-};
-
-export function StoreFooter(_props: StoreFooterProps = {}) {
+export function StoreFooter() {
   const year = new Date().getFullYear();
   const footerRef = useRef<HTMLElement>(null);
-  const logoWrapRef = useRef<HTMLDivElement>(null);
-  const positioningRef = useRef<HTMLParagraphElement>(null);
-  const ruleRef = useRef<HTMLDivElement>(null);
-  const bottomRef = useRef<HTMLDivElement>(null);
   const linksRef = useRef<HTMLDivElement>(null);
-
-  const [email, setEmail] = useState("");
-  const [error, setError] = useState<string | null>(null);
-  const [success, setSuccess] = useState<string | null>(null);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-
-  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    setError(null);
-    setSuccess(null);
-    const emailError = validateStoreEmail(email, true);
-    if (emailError) {
-      setError(emailError);
-      return;
-    }
-    setIsSubmitting(true);
-    try {
-      const message = await subscribeNewsletter(email);
-      setSuccess(message);
-      setEmail("");
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Could not subscribe. Please try again.");
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
 
   useEffect(() => {
     const footer = footerRef.current;
@@ -113,60 +46,6 @@ export function StoreFooter(_props: StoreFooterProps = {}) {
     ensureGsapPlugins();
 
     const ctx = gsap.context(() => {
-      const watermark = logoWrapRef.current?.querySelector("img");
-      if (watermark) {
-        gsap.fromTo(
-          watermark,
-          { opacity: 0.025, scale: 1.15, y: 24 },
-          {
-            opacity: 0.6,
-            scale: 1,
-            y: 0,
-            ease: "none",
-            scrollTrigger: {
-              trigger: footer,
-              start: "top 90%",
-              end: "top 15%",
-              scrub: 2,
-            },
-          },
-        );
-      }
-
-      if (positioningRef.current) {
-        gsap.fromTo(
-          positioningRef.current,
-          { opacity: 0, y: 12 },
-          {
-            opacity: 1,
-            y: 0,
-            duration: 1,
-            ease: "expo.out",
-            scrollTrigger: {
-              trigger: footer,
-              start: "top 78%",
-            },
-          },
-        );
-      }
-
-      if (ruleRef.current) {
-        gsap.fromTo(
-          ruleRef.current,
-          { scaleX: 0 },
-          {
-            scaleX: 1,
-            duration: 1.4,
-            ease: "expo.inOut",
-            transformOrigin: "left",
-            scrollTrigger: {
-              trigger: ruleRef.current,
-              start: "top 88%",
-            },
-          },
-        );
-      }
-
       if (linksRef.current) {
         const cols = linksRef.current.querySelectorAll(".link-col");
         gsap.fromTo(
@@ -185,23 +64,6 @@ export function StoreFooter(_props: StoreFooterProps = {}) {
           },
         );
       }
-
-      if (bottomRef.current) {
-        gsap.fromTo(
-          bottomRef.current,
-          { opacity: 0, y: 10 },
-          {
-            opacity: 1,
-            y: 0,
-            duration: 1,
-            ease: "expo.out",
-            scrollTrigger: {
-              trigger: bottomRef.current,
-              start: "top 95%",
-            },
-          },
-        );
-      }
     }, footer);
 
     return () => ctx.revert();
@@ -213,103 +75,108 @@ export function StoreFooter(_props: StoreFooterProps = {}) {
       as="footer"
       theme="dark"
       compact
-      className="store-footer-dark overflow-hidden pt-6 pb-14 sm:pt-8 sm:pb-16"
+      className="store-footer-dark overflow-hidden pt-12 pb-0"
       aria-label="Site footer"
     >
-      <div
-        ref={logoWrapRef}
-        className="pointer-events-none absolute inset-0 bottom-5  flex items-center justify-center overflow-hidden"
-        aria-hidden
-      />
-
-      <div className="relative z-[1] mx-auto w-full max-w-[1440px] px-5 pt-2 sm:px-8 sm:pt-3 md:px-12 md:pt-4 lg:px-16">
-        <div className="flex justify-center">
-          <StoreLogo variant="light" size="lg" />
-        </div>
-
+      <div className="relative z-[1] mx-auto w-full max-w-[1440px] px-5 sm:px-8 md:px-12 lg:px-16">
         <div
           ref={linksRef}
-          className="relative mt-12 grid grid-cols-2 gap-x-8 gap-y-9 sm:mt-14 sm:gap-x-10 md:grid-cols-4 md:gap-y-0 lg:mt-16"
+          className="grid grid-cols-2 gap-x-6 gap-y-10 sm:grid-cols-3 lg:grid-cols-[1.4fr_1fr_1fr_1fr_1fr] lg:gap-x-8"
         >
-          {LINK_COLUMNS.map(({ title, links }, index) => (
-            <div key={title} className={`link-col ${index > 0 ? "md:pl-8 lg:pl-10" : ""}`}>
-              <p className="mb-4 font-store-body text-sm font-semibold uppercase tracking-[0.22em] text-[var(--section-fg-muted)]">
-                {title}
-              </p>
-              <ul className="space-y-2.5 sm:space-y-3">
-                {links.map((link) => (
-                  <li key={link.label}>
-                    {"href" in link ? (
-                      <FooterNavLink
-                        label={link.label}
-                        href={(link as { href: string }).href}
-                        external={(link as { external?: boolean }).external}
-                      />
-                    ) : (
-                      <FooterNavLink label={link.label} to={(link as { to: string }).to} />
-                    )}
-                  </li>
-                ))}
-              </ul>
-            </div>
-          ))}
-        </div>
-
-        <div
-          className="relative mt-8 h-px w-full bg-[var(--section-border)] sm:mt-10 md:mt-12"
-          aria-hidden
-        />
-
-        <div
-          ref={bottomRef}
-          className="relative mt-6 flex flex-col gap-6 opacity-0 sm:mt-8 sm:gap-7 lg:mt-10 lg:flex-row lg:items-end lg:justify-between lg:gap-6"
-        >
-          <div className="min-w-0 flex-1 lg:max-w-md">
-            <p className="mb-1 font-store-body text-sm font-medium uppercase tracking-[0.24em] text-[var(--section-fg-muted)]">
-              Newsletter
+          <div className="link-col col-span-2 sm:col-span-3 lg:col-span-1">
+            <StoreLogo variant="light" size="lg" tagline />
+            <p className="mt-4 max-w-xs font-store-body text-sm leading-relaxed text-white/60">
+              Faithful Meat is your trusted source for 100% fresh, hygienic &amp; premium quality
+              meat and fish.
             </p>
-            <p className="mb-4 max-w-sm font-store-body text-base leading-relaxed text-[var(--section-fg-muted)] sm:mb-5">
-              {FOOTER_NEWSLETTER.subtitle}
-            </p>
-            {error && (
-              <p className="mb-2 font-store-body text-sm text-red-200" role="alert">
-                {error}
-              </p>
-            )}
-            {success && (
-              <p
-                className="mb-2 font-store-body text-sm text-[var(--section-fg)]"
-                role="status"
-              >
-                {success}
-              </p>
-            )}
-            <form onSubmit={handleSubmit} className="flex items-end gap-4 sm:gap-5">
-              <div className="min-w-0 flex-1">
-                <label htmlFor="footer-email" className="sr-only">
-                  {FOOTER_NEWSLETTER.placeholder}
-                </label>
-                <UnderlineInput
-                  id="footer-email"
-                  type="email"
-                  required
-                  value={email}
-                  onChange={setEmail}
-                  placeholder={FOOTER_NEWSLETTER.placeholder}
-                  disabled={isSubmitting}
-                />
-              </div>
-              <button
-                type="submit"
-                disabled={isSubmitting}
-                className="shrink-0 border-b border-[var(--section-fg)] pb-2.5 font-store-body text-sm font-medium uppercase tracking-[0.16em] text-[var(--section-fg)] transition-opacity hover:opacity-60 disabled:opacity-40"
-              >
-                {isSubmitting ? "…" : "Subscribe →"}
-              </button>
-            </form>
           </div>
 
-          <div className="flex items-center justify-center gap-2.5 sm:gap-3 lg:justify-center">
+          <div className="link-col">
+            <FooterColumnTitle>Quick Links</FooterColumnTitle>
+            <ul className="space-y-2.5">
+              {FOOTER_MAIN_LINKS.map((link) => (
+                <li key={link.label}>
+                  <FooterNavLink label={link.label} to={link.to} />
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          <div className="link-col">
+            <FooterColumnTitle>Categories</FooterColumnTitle>
+            <ul className="space-y-2.5">
+              {FOOTER_CATEGORY_LINKS.map((link) => (
+                <li key={link.label}>
+                  <FooterNavLink label={link.label} to={link.to} />
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          <div className="link-col">
+            <FooterColumnTitle>We Deliver</FooterColumnTitle>
+            <p className="mb-2 font-store-body text-sm font-semibold text-white">
+              At Your Doorstep
+            </p>
+            <a
+              href={STORE_LOCATION.mapsUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="group flex items-start gap-2 font-store-body text-sm leading-relaxed text-white/60 transition-colors duration-300 hover:text-white"
+            >
+              <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-[var(--store-red)]" aria-hidden />
+              {STORE_LOCATION.address}
+            </a>
+          </div>
+
+          <div className="link-col">
+            <FooterColumnTitle>Contact Us</FooterColumnTitle>
+            <ul className="space-y-2.5">
+              <li>
+                <a
+                  href={`tel:${STORE_LOCATION.phoneTel}`}
+                  className="flex items-center gap-2 font-store-body text-sm text-white/60 transition-colors duration-300 hover:text-white"
+                >
+                  <Phone className="h-4 w-4 shrink-0 text-[var(--store-red)]" aria-hidden />
+                  {STORE_LOCATION.phoneDisplay}
+                </a>
+              </li>
+              <li>
+                <a
+                  href={`https://wa.me/${STORE_LOCATION.phoneTel.replace("+", "")}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-2 font-store-body text-sm text-white/60 transition-colors duration-300 hover:text-white"
+                >
+                  <WhatsAppIcon className="h-4 w-4 shrink-0 text-[var(--store-red)]" />
+                  {STORE_LOCATION.phoneDisplay}
+                </a>
+              </li>
+              <li>
+                <a
+                  href={`mailto:${STORE_CONTACT_EMAIL}`}
+                  className="flex items-center gap-2 font-store-body text-sm text-white/60 transition-colors duration-300 hover:text-white"
+                >
+                  <Mail className="h-4 w-4 shrink-0 text-[var(--store-red)]" aria-hidden />
+                  {STORE_CONTACT_EMAIL}
+                </a>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <div className="relative z-[1] mt-10 w-full bg-[var(--store-red)] py-4">
+        <div className="mx-auto flex max-w-[1440px] flex-col items-center justify-between gap-3 px-5 text-center sm:flex-row sm:px-8 sm:text-left md:px-12 lg:px-16">
+          <p className="font-store-body text-xs uppercase tracking-[0.1em] text-white">
+            &copy; {year} Faithful Meat. All Rights Reserved.
+            <span className="hidden sm:inline">
+              {" "}
+              &nbsp;|&nbsp; Fresh Meat &amp; Fish Delivered To Your Doorstep
+            </span>
+          </p>
+
+          <div className="flex items-center gap-2.5">
             {SOCIAL_LINKS.map((social) => {
               const Icon = SOCIAL_ICON[social.id as keyof typeof SOCIAL_ICON] ?? Instagram;
               return (
@@ -319,20 +186,13 @@ export function StoreFooter(_props: StoreFooterProps = {}) {
                   target="_blank"
                   rel="noopener noreferrer"
                   aria-label={social.label}
-                  className="flex h-9 w-9 items-center justify-center rounded-full border border-white/30 text-[var(--section-fg-muted)] transition-colors duration-300 hover:border-white hover:text-white sm:h-10 sm:w-10"
+                  className="flex h-8 w-8 items-center justify-center rounded-full border border-white/50 text-white transition-colors duration-300 hover:border-white hover:bg-white/10"
                 >
-                  <Icon className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+                  <Icon className="h-3.5 w-3.5" />
                 </a>
               );
             })}
           </div>
-
-          <p className="shrink-0 text-center font-store-body text-sm uppercase tracking-[0.14em] text-[var(--section-fg-muted)] lg:text-right">
-            © {year} Faithful Meat.
-            <span className="hidden sm:inline"> </span>
-            <br className="sm:hidden" />
-            All rights reserved.
-          </p>
         </div>
       </div>
     </StoreHomeSection>

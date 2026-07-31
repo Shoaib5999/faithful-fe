@@ -1,7 +1,13 @@
 import { createPortal } from "react-dom";
-import { useEffect, useState, type ComponentProps, type ReactNode } from "react";
+import {
+  useEffect,
+  useState,
+  type ComponentProps,
+  type ReactNode,
+  type ComponentType,
+} from "react";
 import { Link } from "react-router-dom";
-import { ArrowUpRight } from "lucide-react";
+import { ArrowUpRight, type LucideProps } from "lucide-react";
 import { RevealTitle } from "@/components/storefront/motion/RevealTitle";
 import { RevealText } from "@/components/storefront/motion/RevealText";
 import { cn } from "@/lib/utils";
@@ -98,11 +104,18 @@ export function StoreSectionTitle({
 }) {
   return (
     <div className={cn("mb-6 md:mb-8", className)}>
-      <RevealTitle as="h2" className=" text-xl font-normal tracking-wide text-[var(--store-ink)] md:text-2xl">
+      <RevealTitle
+        as="h2"
+        className=" text-xl font-normal tracking-wide text-[var(--store-ink)] md:text-2xl"
+      >
         {title}
       </RevealTitle>
       {subtitle ? (
-        <RevealText as="p" delay={100} className="mt-2 max-w-2xl font-store-body text-sm leading-relaxed text-[var(--store-muted)]">
+        <RevealText
+          as="p"
+          delay={100}
+          className="mt-2 max-w-2xl font-store-body text-sm leading-relaxed text-[var(--store-muted)]"
+        >
           {subtitle}
         </RevealText>
       ) : null}
@@ -115,21 +128,11 @@ export function StoreGoldCtaLink({ className, ...props }: ComponentProps<typeof 
 }
 
 export function StorePrimaryButton({ className, ...props }: ComponentProps<"button">) {
-  return (
-    <button
-      className={cn(storeBtnBase, storePrimaryActionClass, className)}
-      {...props}
-    />
-  );
+  return <button className={cn(storeBtnBase, storePrimaryActionClass, className)} {...props} />;
 }
 
 export function StorePrimaryLink({ className, ...props }: ComponentProps<typeof Link>) {
-  return (
-    <Link
-      className={cn(storeBtnBase, storePrimaryActionClass, className)}
-      {...props}
-    />
-  );
+  return <Link className={cn(storeBtnBase, storePrimaryActionClass, className)} {...props} />;
 }
 
 export function StoreExploreCollectionLink({
@@ -171,6 +174,51 @@ export function StoreTextarea({ className, ...props }: ComponentProps<"textarea"
     <textarea
       className={cn(storeFieldInputClass, "resize-y leading-relaxed", className)}
       {...props}
+    />
+  );
+}
+
+/** Product/category photo that falls back to a centered icon on load error (avoids broken-image glyphs). */
+export function StoreImageWithFallback({
+  src,
+  alt,
+  icon: Icon,
+  className,
+  iconClassName,
+}: {
+  src: string;
+  alt: string;
+  icon: ComponentType<LucideProps>;
+  className?: string;
+  iconClassName?: string;
+}) {
+  const [failed, setFailed] = useState(false);
+
+  if (failed) {
+    return (
+      <div
+        className={cn(
+          "flex h-full w-full items-center justify-center bg-[var(--store-cream)]",
+          className,
+        )}
+      >
+        <Icon
+          className={cn("h-10 w-10 text-[var(--store-red)]/40", iconClassName)}
+          strokeWidth={1.25}
+          aria-hidden
+        />
+      </div>
+    );
+  }
+
+  return (
+    <img
+      src={src}
+      alt={alt}
+      className={cn("h-full w-full object-cover", className)}
+      loading="lazy"
+      draggable={false}
+      onError={() => setFailed(true)}
     />
   );
 }

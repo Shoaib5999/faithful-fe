@@ -92,14 +92,14 @@ export const FOOTER_NEWSLETTER = {
 } as const;
 
 export const STORE_LOCATION = {
-  address: "123, Fresh Market Street, Your City - 600001",
-  phoneDisplay: "098765 43210",
-  phoneTel: "+919876543210",
+  address: "Bairia Choke Bye Pass Road, Bairia, Ballia, Uttar Pradesh – 277001",
+  phoneDisplay: "9065064977",
+  phoneTel: "+919065064977",
   hours: "Monday to Sunday · 7am to 10pm",
   mapsUrl: "https://maps.google.com",
 } as const;
 
-export const STORE_CONTACT_EMAIL = "hello@faithfulmeat.com" as const;
+export const STORE_CONTACT_EMAIL = "faithfulmeat@gmail.com" as const;
 
 export const CONTACT_FAQS = [
   {
@@ -150,10 +150,28 @@ export const FOOTER_QUICK_LINKS = [
   { label: "Best Sellers", to: "/collection?filter=best-sellers" },
 ] as const;
 
+export const FOOTER_MAIN_LINKS = [
+  { label: "Home", to: "/" },
+  { label: "Shop", to: "/collection" },
+  { label: "About Us", to: "/about" },
+  { label: "Contact Us", to: "/contact" },
+] as const;
+
+export const FOOTER_CATEGORY_LINKS = [
+  { label: "Fresh Chicken", to: "/collection?category=chicken" },
+  { label: "Chicken Curry Cut", to: "/collection?category=chicken&type=curry-cut" },
+  { label: "Chicken Boneless", to: "/collection?category=chicken&type=boneless" },
+  { label: "Fresh Mutton", to: "/collection?category=mutton" },
+  { label: "Mutton Curry Cut", to: "/collection?category=mutton&type=curry-cut" },
+  { label: "Mutton Boneless", to: "/collection?category=mutton&type=boneless" },
+  { label: "Fresh Fish", to: "/collection?category=fish" },
+  { label: "Special Cuts", to: "/collection?filter=special-cuts" },
+] as const;
+
 export const SOCIAL_LINKS = [
   { id: "instagram", label: "Instagram", href: "https://www.instagram.com/faithfulmeat/" },
   { id: "facebook", label: "Facebook", href: "https://www.facebook.com/faithfulmeat" },
-  { id: "whatsapp", label: "WhatsApp", href: "https://wa.me/919876543210" },
+  { id: "whatsapp", label: "WhatsApp", href: "https://wa.me/919065064977" },
 ] as const;
 
 export const MOBILE_SHOP_EXPANDABLE = [
@@ -218,7 +236,9 @@ export const resolveCollectionCategorySlug = (param: string): string =>
 
 export const collectionCategoryToParam = (slug: string | null): string | null => {
   if (!slug) return null;
-  const alias = Object.entries(COLLECTION_CATEGORY_ALIASES).find(([, value]) => value === slug)?.[0];
+  const alias = Object.entries(COLLECTION_CATEGORY_ALIASES).find(
+    ([, value]) => value === slug,
+  )?.[0];
   return alias ?? slug;
 };
 

@@ -1,14 +1,13 @@
 import { useEffect, useState } from "react";
-import { BestsellersSection } from "@/components/storefront/BestsellersSection";
-import { CategorySection } from "@/components/storefront/CategorySection";
-import { FeaturedCollectionsSection } from "@/components/storefront/FeaturedCollectionsSection";
-import { HeroSlider } from "@/components/storefront/HeroSlider";
+import { DeliveryInfoStrip } from "@/components/storefront/DeliveryInfoStrip";
+import { DeliveryOrderBar } from "@/components/storefront/DeliveryOrderBar";
+import { HomeHeroBanner } from "@/components/storefront/HomeHeroBanner";
 import type { HeroSlide } from "@/types/cms.types";
-import { InstagramFollowSection } from "@/components/storefront/InstagramFollowSection";
-import { NewArrivalsSection } from "@/components/storefront/NewArrivalsSection";
-import { ProcessSection } from "@/components/storefront/ProcessSection";
+import { ShopByCategoryGrid } from "@/components/storefront/ShopByCategoryGrid";
+import { SpecialCutsSection } from "@/components/storefront/SpecialCutsSection";
 import { StoreFooter } from "@/components/storefront/StoreFooter";
 import { WhatsAppButton } from "@/components/storefront/WhatsAppButton";
+import { WhyChooseSection } from "@/components/storefront/WhyChooseSection";
 import { StoreMotionProvider } from "@/components/storefront/motion/StoreMotionProvider";
 import { fetchStorefrontSliders } from "@/services/slider-service";
 
@@ -34,13 +33,12 @@ export default function Home() {
   return (
     <main className="storefront min-h-screen w-full overflow-x-clip">
       <StoreMotionProvider>
-        {heroSlides.length > 0 && <HeroSlider slides={heroSlides} />}
-        <CategorySection theme="light" />
-        <BestsellersSection theme="red" />
-        <FeaturedCollectionsSection theme="light" />
-        <NewArrivalsSection theme="red" />
-        <ProcessSection theme="light" />
-        <InstagramFollowSection theme="red" />
+        <HomeHeroBanner slides={heroSlides} />
+        <DeliveryInfoStrip />
+        <ShopByCategoryGrid />
+        <WhyChooseSection />
+        <SpecialCutsSection />
+        <DeliveryOrderBar />
         <StoreFooter />
         <WhatsAppButton />
       </StoreMotionProvider>

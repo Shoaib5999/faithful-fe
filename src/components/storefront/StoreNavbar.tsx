@@ -1,14 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import {
-  Search,
-  User,
-  ShoppingBag,
-  Heart,
-  Menu,
-  X,
-  ChevronDown,
-} from "lucide-react";
+import { Search, User, ShoppingBag, Heart, Menu, X, ChevronDown } from "lucide-react";
 import { gsap } from "gsap";
 import { StoreLogo } from "@/components/storefront/StoreLogo";
 import { StoreSearchSuggestions } from "@/components/storefront/StoreSearchSuggestions";
@@ -26,12 +18,11 @@ type DrawerView = "none" | "menu" | "cart";
 // ─── Shared ──────────────────────────────────────────────────────────────────
 
 const iconBtnClass =
-  "relative flex h-10 w-10 items-center justify-center rounded-full text-[var(--store-ink)] transition-colors duration-200 hover:bg-[var(--store-cream)] hover:text-[var(--store-red)] active:scale-95";
+  "relative flex h-10 w-10 items-center justify-center rounded-full text-white transition-colors duration-200 hover:bg-white/10 hover:text-[var(--store-red-light)] active:scale-95";
 
 function CartBadge({ count }: { count: number }) {
-  if (count <= 0) return null;
   return (
-    <span className="absolute -right-0.5 -top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-[var(--store-ink)] px-1 text-[9px] font-bold leading-none text-white">
+    <span className="absolute -right-0.5 -top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-[var(--store-red)] px-1 text-[9px] font-bold leading-none text-white">
       {count}
     </span>
   );
@@ -201,7 +192,7 @@ function DesktopNav({
       "block whitespace-nowrap px-3 py-1.5 font-store-body text-[11px] font-medium uppercase tracking-[0.14em] transition-colors duration-200",
       isActive(to)
         ? "text-[var(--store-red)]"
-        : "text-[var(--store-ink)] hover:text-[var(--store-red)]",
+        : "text-white/85 hover:text-[var(--store-red-light)]",
     );
 
   const renderLink = (link: (typeof MAIN_NAV_LINKS)[number]) => {
@@ -215,7 +206,7 @@ function DesktopNav({
               "flex items-center gap-1 px-3 py-1.5 font-store-body text-[11px] font-medium uppercase tracking-[0.14em] transition-colors duration-200",
               isActive(link.to) || isShopOpen
                 ? "text-[var(--store-red)]"
-                : "text-[var(--store-ink)] hover:text-[var(--store-red)]",
+                : "text-white/85 hover:text-[var(--store-red-light)]",
             )}
           >
             {link.label}
@@ -245,135 +236,127 @@ function DesktopNav({
       <header
         ref={headerRef}
         className={cn(
-          "fixed top-0 z-50 hidden w-full will-change-transform lg:block transition-[background-color,box-shadow,border-color] duration-500",
-          scrolled
-            ? "border-b border-black/10 bg-white/95 shadow-[0_2px_20px_rgba(0,0,0,0.06)] backdrop-blur-md"
-            : "border-b border-transparent bg-white",
+          "fixed top-0 z-50 hidden w-full will-change-transform lg:block bg-[var(--store-ink)] transition-shadow duration-500",
+          scrolled ? "shadow-[0_2px_20px_rgba(0,0,0,0.35)]" : "",
           !navVisible && "pointer-events-none",
         )}
       >
-        <div
-          className={cn(
-            "absolute inset-x-0 bottom-0 h-px origin-left bg-gradient-to-r from-transparent via-[var(--store-red)]/40 to-transparent transition-transform duration-700",
-            scrolled ? "scale-x-100" : "scale-x-0",
-          )}
-          aria-hidden
-        />
+        <div className="absolute inset-x-0 bottom-0 h-px bg-[var(--store-red)]/25" aria-hidden />
         <div className="relative mx-auto max-w-[1440px] px-8 xl:px-14">
-        {/* Search overlay */}
-        <div
-          className={cn(
-            "absolute inset-x-8 top-1/2 z-30 mx-auto max-w-lg -translate-y-1/2 xl:inset-x-14 transition-all duration-300",
-            searchOpen
-              ? "pointer-events-auto opacity-100 translate-y-[-50%]"
-              : "pointer-events-none opacity-0 translate-y-[-42%]",
-          )}
-        >
-          <form
-            onSubmit={onSearchSubmit}
-            className="flex items-center overflow-hidden rounded-xl border border-[var(--store-red)] bg-white px-1 shadow-[0_4px_24px_rgba(0,0,0,0.10)]"
-            aria-hidden={!searchOpen}
-          >
-            <Search className="ml-3 h-4 w-4 shrink-0 text-[var(--store-muted)]" aria-hidden />
-            <input
-              ref={searchInputRef}
-              type="search"
-              value={searchQuery}
-              onChange={(e) => onSearchChange(e.target.value)}
-              placeholder="Search chicken, mutton, fish…"
-              tabIndex={searchOpen ? 0 : -1}
-              className="min-w-0 flex-1 bg-transparent px-3 py-3 font-store-body text-sm text-[var(--store-ink)] outline-none placeholder:text-[var(--store-muted)]"
-              aria-label="Search products"
-              aria-autocomplete="list"
-            />
-            <button
-              type="button"
-              onClick={onSearchClose}
-              className="shrink-0 px-3 py-2 text-[var(--store-muted)] transition-colors hover:text-[var(--store-ink)]"
-              aria-label="Close search"
-              tabIndex={searchOpen ? 0 : -1}
-            >
-              <X className="h-4 w-4" />
-            </button>
-          </form>
-          <StoreSearchSuggestions
-            query={searchQuery}
-            visible={showSuggestions}
-            onNavigateProduct={onSuggestionProduct}
-            onViewAll={onSuggestionViewAll}
-          />
-        </div>
-
-        {/* Three-column layout: Left nav | Center logo | Right icons */}
-        <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-4 py-4">
-          {/* LEFT — Nav links */}
-          <nav
-            className={cn(
-              "flex items-center transition-opacity duration-300",
-              searchOpen && "pointer-events-none opacity-0",
-            )}
-            aria-label="Main navigation"
-            aria-hidden={searchOpen}
-          >
-            <ul ref={navLinksRef} className="flex items-center gap-0.5">
-              {MAIN_NAV_LINKS.map(renderLink)}
-            </ul>
-          </nav>
-
-          {/* CENTER — Logo */}
-          <div ref={logoRef} className="flex origin-center items-center justify-center">
-            <StoreLogo size="lg" />
-          </div>
-
-          {/* RIGHT — Actions */}
+          {/* Search overlay */}
           <div
             className={cn(
-              "flex items-center justify-end gap-1 transition-opacity duration-300",
-              searchOpen && "pointer-events-none opacity-0",
+              "absolute inset-x-8 top-1/2 z-30 mx-auto max-w-lg -translate-y-1/2 xl:inset-x-14 transition-all duration-300",
+              searchOpen
+                ? "pointer-events-auto opacity-100 translate-y-[-50%]"
+                : "pointer-events-none opacity-0 translate-y-[-42%]",
             )}
           >
-            <button
-              type="button"
-              onClick={searchOpen ? onSearchClose : onSearchOpen}
-              className={iconBtnClass}
-              aria-label={searchOpen ? "Close search" : "Search"}
-              aria-expanded={searchOpen}
+            <form
+              onSubmit={onSearchSubmit}
+              className="flex items-center overflow-hidden rounded-xl border border-[var(--store-red)] bg-white px-1 shadow-[0_4px_24px_rgba(0,0,0,0.10)]"
+              aria-hidden={!searchOpen}
             >
-              <Search className="h-[18px] w-[18px]" strokeWidth={1.5} />
-            </button>
+              <Search className="ml-3 h-4 w-4 shrink-0 text-[var(--store-muted)]" aria-hidden />
+              <input
+                ref={searchInputRef}
+                type="search"
+                value={searchQuery}
+                onChange={(e) => onSearchChange(e.target.value)}
+                placeholder="Search chicken, mutton, fish…"
+                tabIndex={searchOpen ? 0 : -1}
+                className="min-w-0 flex-1 bg-transparent px-3 py-3 font-store-body text-sm text-[var(--store-ink)] outline-none placeholder:text-[var(--store-muted)]"
+                aria-label="Search products"
+                aria-autocomplete="list"
+              />
+              <button
+                type="button"
+                onClick={onSearchClose}
+                className="shrink-0 px-3 py-2 text-[var(--store-muted)] transition-colors hover:text-[var(--store-ink)]"
+                aria-label="Close search"
+                tabIndex={searchOpen ? 0 : -1}
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </form>
+            <StoreSearchSuggestions
+              query={searchQuery}
+              visible={showSuggestions}
+              onNavigateProduct={onSuggestionProduct}
+              onViewAll={onSuggestionViewAll}
+            />
+          </div>
 
-            <Link
-              to="/wishlist"
-              onClick={onLinkClick}
-              className={cn(iconBtnClass, isActive("/wishlist") && "text-[var(--store-red)]")}
-              aria-label="Wishlist"
-            >
-              <Heart className="h-[18px] w-[18px]" strokeWidth={1.5} />
-            </Link>
+          {/* Three-column layout: Left logo | Center nav | Right icons */}
+          <div className="grid grid-cols-[auto_1fr_auto] items-center gap-4 py-3">
+            {/* LEFT — Logo */}
+            <div ref={logoRef} className="flex origin-left items-center justify-start">
+              <StoreLogo variant="light" size="lg" tagline />
+            </div>
 
-            <button
-              type="button"
-              onClick={onCartToggle}
-              className={cn(iconBtnClass, cartDrawerOpen && "text-[var(--store-red)]")}
-              aria-label="Cart"
-              aria-expanded={cartDrawerOpen}
+            {/* CENTER — Nav links */}
+            <nav
+              className={cn(
+                "flex items-center justify-center transition-opacity duration-300",
+                searchOpen && "pointer-events-none opacity-0",
+              )}
+              aria-label="Main navigation"
+              aria-hidden={searchOpen}
             >
-              <ShoppingBag className="h-[18px] w-[18px]" strokeWidth={1.5} />
-              <CartBadge count={cartCount} />
-            </button>
+              <ul ref={navLinksRef} className="flex items-center gap-0.5">
+                {MAIN_NAV_LINKS.map(renderLink)}
+              </ul>
+            </nav>
 
-            <button
-              type="button"
-              onClick={onProfileClick}
-              className={iconBtnClass}
-              aria-label={isLoggedIn ? "My account" : "Log in or sign up"}
+            {/* RIGHT — Actions */}
+            <div
+              className={cn(
+                "flex items-center justify-end gap-1 transition-opacity duration-300",
+                searchOpen && "pointer-events-none opacity-0",
+              )}
             >
-              <User className="h-[18px] w-[18px]" strokeWidth={1.5} />
-            </button>
+              <button
+                type="button"
+                onClick={searchOpen ? onSearchClose : onSearchOpen}
+                className={iconBtnClass}
+                aria-label={searchOpen ? "Close search" : "Search"}
+                aria-expanded={searchOpen}
+              >
+                <Search className="h-[18px] w-[18px]" strokeWidth={1.5} />
+              </button>
+
+              <Link
+                to="/wishlist"
+                onClick={onLinkClick}
+                className={cn(iconBtnClass, isActive("/wishlist") && "text-[var(--store-red)]")}
+                aria-label="Wishlist"
+              >
+                <Heart className="h-[18px] w-[18px]" strokeWidth={1.5} />
+              </Link>
+
+              <button
+                type="button"
+                onClick={onCartToggle}
+                className={cn(iconBtnClass, cartDrawerOpen && "text-[var(--store-red)]")}
+                aria-label="Cart"
+                aria-expanded={cartDrawerOpen}
+              >
+                <ShoppingBag className="h-[18px] w-[18px]" strokeWidth={1.5} />
+                <CartBadge count={cartCount} />
+              </button>
+
+              <button
+                type="button"
+                onClick={onProfileClick}
+                className={iconBtnClass}
+                aria-label={isLoggedIn ? "My account" : "Log in or sign up"}
+              >
+                <User className="h-[18px] w-[18px]" strokeWidth={1.5} />
+              </button>
+            </div>
           </div>
         </div>
-      </div>
-    </header>
+      </header>
     </>
   );
 }
@@ -471,89 +454,94 @@ function MobileTopBar({
       <div
         ref={topBarRef}
         className={cn(
-          "fixed top-0 z-50 w-full will-change-transform lg:hidden transition-[background-color,box-shadow,border-color] duration-400",
-          scrolled
-            ? "border-b border-black/10 bg-white/95 shadow-[0_2px_16px_rgba(0,0,0,0.08)] backdrop-blur-md"
-            : "border-b border-transparent bg-white",
+          "fixed top-0 z-50 w-full will-change-transform lg:hidden bg-[var(--store-ink)] transition-shadow duration-400",
+          scrolled ? "shadow-[0_2px_16px_rgba(0,0,0,0.35)]" : "",
           !navVisible && "pointer-events-none",
         )}
       >
-      {/* Default top bar — menu left, logo centered, actions right */}
-      <div
-        className={cn(
-          "grid grid-cols-[1fr_auto_1fr] items-center px-4 py-3 transition-all duration-300",
-          searchOpen && "hidden",
-        )}
-      >
-        <div className="flex items-center justify-start">
-          <button
-            type="button"
-            onClick={onMenuToggle}
-            className={cn(iconBtnClass, menuOpen && "text-[var(--store-red)]")}
-            aria-label={menuOpen ? "Close menu" : "Open menu"}
-            aria-expanded={menuOpen}
-          >
-            <Menu className="h-5 w-5" strokeWidth={1.5} />
-          </button>
-        </div>
-
-        <div className="flex items-center justify-center">
-          <StoreLogo size="lg" />
-        </div>
-
-        <div className="flex items-center justify-end gap-1">
-          <button type="button" onClick={onSearchOpen} className={iconBtnClass} aria-label="Search">
-            <Search className="h-5 w-5" strokeWidth={1.5} />
-          </button>
-          <button
-            type="button"
-            onClick={onCartToggle}
-            className={cn(iconBtnClass, cartDrawerOpen && "text-[var(--store-red)]")}
-            aria-label="Cart"
-            aria-expanded={cartDrawerOpen}
-          >
-            <ShoppingBag className="h-5 w-5" strokeWidth={1.5} />
-            <CartBadge count={cartCount} />
-          </button>
-        </div>
-      </div>
-
-      {/* Search bar — replaces top bar */}
-      <div className={cn("px-4 py-3 transition-all duration-300", searchOpen ? "block" : "hidden")}>
-        <form
-          onSubmit={onSearchSubmit}
-          className="flex items-center overflow-hidden rounded-xl border border-[var(--store-red)] bg-white shadow-[0_4px_20px_rgba(0,0,0,0.08)] px-1"
+        {/* Default top bar — menu left, logo centered, actions right */}
+        <div
+          className={cn(
+            "grid grid-cols-[1fr_auto_1fr] items-center px-4 py-2.5 transition-all duration-300",
+            searchOpen && "hidden",
+          )}
         >
-          <Search className="ml-2 h-4 w-4 shrink-0 text-[var(--store-muted)]" aria-hidden />
-          <input
-            ref={mobileSearchInputRef}
-            type="search"
-            value={searchQuery}
-            onChange={(e) => onSearchChange(e.target.value)}
-            placeholder="Search products…"
-            enterKeyHint="search"
-            className="min-w-0 flex-1 bg-transparent px-2 py-3 font-store-body text-sm text-[var(--store-ink)] outline-none placeholder:text-[var(--store-muted)]"
-            aria-label="Search products"
-            aria-autocomplete="list"
-          />
-          <button
-            type="button"
-            onClick={onSearchClose}
-            className="shrink-0 px-3 py-2 text-[var(--store-muted)] transition-colors hover:text-[var(--store-ink)]"
-            aria-label="Close search"
+          <div className="flex items-center justify-start">
+            <button
+              type="button"
+              onClick={onMenuToggle}
+              className={cn(iconBtnClass, menuOpen && "text-[var(--store-red)]")}
+              aria-label={menuOpen ? "Close menu" : "Open menu"}
+              aria-expanded={menuOpen}
+            >
+              <Menu className="h-5 w-5" strokeWidth={1.5} />
+            </button>
+          </div>
+
+          <div className="flex items-center justify-center">
+            <StoreLogo variant="light" size="md" />
+          </div>
+
+          <div className="flex items-center justify-end gap-1">
+            <button
+              type="button"
+              onClick={onSearchOpen}
+              className={iconBtnClass}
+              aria-label="Search"
+            >
+              <Search className="h-5 w-5" strokeWidth={1.5} />
+            </button>
+            <button
+              type="button"
+              onClick={onCartToggle}
+              className={cn(iconBtnClass, cartDrawerOpen && "text-[var(--store-red)]")}
+              aria-label="Cart"
+              aria-expanded={cartDrawerOpen}
+            >
+              <ShoppingBag className="h-5 w-5" strokeWidth={1.5} />
+              <CartBadge count={cartCount} />
+            </button>
+          </div>
+        </div>
+
+        {/* Search bar — replaces top bar */}
+        <div
+          className={cn("px-4 py-3 transition-all duration-300", searchOpen ? "block" : "hidden")}
+        >
+          <form
+            onSubmit={onSearchSubmit}
+            className="flex items-center overflow-hidden rounded-xl border border-[var(--store-red)] bg-white shadow-[0_4px_20px_rgba(0,0,0,0.08)] px-1"
           >
-            <X className="h-4 w-4" strokeWidth={1.5} />
-          </button>
-        </form>
-        <StoreSearchSuggestions
-          query={searchQuery}
-          visible={showSuggestions}
-          onNavigateProduct={onSuggestionProduct}
-          onViewAll={onSuggestionViewAll}
-          className="static mt-2 border-x-0 shadow-none"
-        />
+            <Search className="ml-2 h-4 w-4 shrink-0 text-[var(--store-muted)]" aria-hidden />
+            <input
+              ref={mobileSearchInputRef}
+              type="search"
+              value={searchQuery}
+              onChange={(e) => onSearchChange(e.target.value)}
+              placeholder="Search products…"
+              enterKeyHint="search"
+              className="min-w-0 flex-1 bg-transparent px-2 py-3 font-store-body text-sm text-[var(--store-ink)] outline-none placeholder:text-[var(--store-muted)]"
+              aria-label="Search products"
+              aria-autocomplete="list"
+            />
+            <button
+              type="button"
+              onClick={onSearchClose}
+              className="shrink-0 px-3 py-2 text-[var(--store-muted)] transition-colors hover:text-[var(--store-ink)]"
+              aria-label="Close search"
+            >
+              <X className="h-4 w-4" strokeWidth={1.5} />
+            </button>
+          </form>
+          <StoreSearchSuggestions
+            query={searchQuery}
+            visible={showSuggestions}
+            onNavigateProduct={onSuggestionProduct}
+            onViewAll={onSuggestionViewAll}
+            className="static mt-2 border-x-0 shadow-none"
+          />
+        </div>
       </div>
-    </div>
     </>
   );
 }
