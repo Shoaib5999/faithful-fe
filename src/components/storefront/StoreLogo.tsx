@@ -1,17 +1,10 @@
 import { Link } from "react-router-dom";
-import faithfulMeatLogo from "@/assets/brand/faithful-meat-logo.svg";
+import faithfulMeatLogo from "@/assets/brand/faithful-meat-logo-circle.png";
 import { cn } from "@/lib/utils";
 
 type StoreLogoProps = {
   className?: string;
-  variant?: "red" | "ink" | "light";
   size?: "sm" | "md" | "lg";
-};
-
-const VARIANT_STYLES: Record<NonNullable<StoreLogoProps["variant"]>, string> = {
-  red: "[filter:invert(14%)_sepia(90%)_saturate(6000%)_hue-rotate(355deg)_brightness(0.9)_contrast(1.1)]",
-  ink: "",
-  light: "brightness-0 invert",
 };
 
 const SIZE_STYLES: Record<NonNullable<StoreLogoProps["size"]>, string> = {
@@ -20,7 +13,7 @@ const SIZE_STYLES: Record<NonNullable<StoreLogoProps["size"]>, string> = {
   lg: "h-10 w-auto sm:h-11 md:h-12 lg:h-[3.25rem]",
 };
 
-export function StoreLogo({ className, variant = "red", size = "md" }: StoreLogoProps) {
+export function StoreLogo({ className, size = "md" }: StoreLogoProps) {
   return (
     <Link
       to="/"
@@ -33,12 +26,11 @@ export function StoreLogo({ className, variant = "red", size = "md" }: StoreLogo
       <img
         src={faithfulMeatLogo}
         alt="Faithful Meat"
-        width={230}
-        height={108}
+        width={682}
+        height={702}
         className={cn(
           "object-contain object-center transition-opacity duration-200 group-hover:opacity-85",
           SIZE_STYLES[size],
-          VARIANT_STYLES[variant],
         )}
         draggable={false}
       />

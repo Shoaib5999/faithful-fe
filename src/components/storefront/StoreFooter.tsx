@@ -224,7 +224,7 @@ export function StoreFooter(_props: StoreFooterProps = {}) {
 
       <div className="relative z-[1] mx-auto w-full max-w-[1440px] px-5 pt-2 sm:px-8 sm:pt-3 md:px-12 md:pt-4 lg:px-16">
         <div className="flex justify-center">
-          <StoreLogo variant="light" size="lg" />
+          <StoreLogo size="lg" />
         </div>
 
         <div
