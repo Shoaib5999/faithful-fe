@@ -32,8 +32,8 @@ export function RevealWordTitle<T extends ElementType = "h2">({
           ...props,
         },
         words.map((word, index) => (
-          <span key={`${word}-${index}`} className="mr-[0.25em] inline-block overflow-hidden">
-            <span className="word-inner inline-block">{word}</span>
+          <span key={`${word}-${index}`} className="store-reveal-word-mask mr-[0.25em]">
+            <span className="word-inner">{word}</span>
           </span>
         )),
       )}

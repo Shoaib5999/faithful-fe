@@ -62,7 +62,7 @@ function UnderlineInput({
       value={value}
       onChange={(e) => onChange(e.target.value)}
       placeholder={placeholder}
-      className="w-full border-0 border-b border-[var(--section-border)] bg-transparent pb-2.5 font-store-body text-base text-[var(--section-fg)] outline-none placeholder:text-[var(--section-fg-muted)] focus:border-[var(--section-fg)] transition-colors duration-300"
+      className="w-full border-0 border-b border-white/30 bg-transparent pb-2.5 font-store-body text-base text-white outline-none placeholder:text-white/68 focus:border-white transition-colors duration-300"
     />
   );
 }
@@ -233,7 +233,7 @@ export function StoreFooter(_props: StoreFooterProps = {}) {
         >
           {LINK_COLUMNS.map(({ title, links }, index) => (
             <div key={title} className={`link-col ${index > 0 ? "md:pl-8 lg:pl-10" : ""}`}>
-              <p className="mb-4 font-store-body text-sm font-semibold uppercase tracking-[0.22em] text-[var(--section-fg-muted)]">
+              <p className="mb-4 font-store-body text-sm font-semibold uppercase tracking-[0.22em] text-white/70">
                 {title}
               </p>
               <ul className="space-y-2.5 sm:space-y-3">
@@ -262,13 +262,13 @@ export function StoreFooter(_props: StoreFooterProps = {}) {
 
         <div
           ref={bottomRef}
-          className="relative mt-6 flex flex-col gap-6 opacity-0 sm:mt-8 sm:gap-7 lg:mt-10 lg:flex-row lg:items-end lg:justify-between lg:gap-6"
+          className="relative mt-6 flex flex-col gap-6 sm:mt-8 sm:gap-7 lg:mt-10 lg:flex-row lg:items-end lg:justify-between lg:gap-6"
         >
           <div className="min-w-0 flex-1 lg:max-w-md">
-            <p className="mb-1 font-store-body text-sm font-medium uppercase tracking-[0.24em] text-[var(--section-fg-muted)]">
+            <p className="mb-1 font-store-body text-sm font-medium uppercase tracking-[0.24em] text-white/70">
               Newsletter
             </p>
-            <p className="mb-4 max-w-sm font-store-body text-base leading-relaxed text-[var(--section-fg-muted)] sm:mb-5">
+            <p className="mb-4 max-w-sm font-store-body text-base leading-relaxed text-white/70 sm:mb-5">
               {FOOTER_NEWSLETTER.subtitle}
             </p>
             {error && (
@@ -278,7 +278,7 @@ export function StoreFooter(_props: StoreFooterProps = {}) {
             )}
             {success && (
               <p
-                className="mb-2 font-store-body text-sm text-[var(--section-fg)]"
+                className="mb-2 font-store-body text-sm text-white"
                 role="status"
               >
                 {success}
@@ -302,7 +302,7 @@ export function StoreFooter(_props: StoreFooterProps = {}) {
               <button
                 type="submit"
                 disabled={isSubmitting}
-                className="shrink-0 border-b border-[var(--section-fg)] pb-2.5 font-store-body text-sm font-medium uppercase tracking-[0.16em] text-[var(--section-fg)] transition-opacity hover:opacity-60 disabled:opacity-40"
+                className="shrink-0 border-b border-white pb-2.5 font-store-body text-sm font-medium uppercase tracking-[0.16em] text-white transition-opacity hover:opacity-60 disabled:opacity-40"
               >
                 {isSubmitting ? "…" : "Subscribe →"}
               </button>
@@ -319,7 +319,7 @@ export function StoreFooter(_props: StoreFooterProps = {}) {
                   target="_blank"
                   rel="noopener noreferrer"
                   aria-label={social.label}
-                  className="flex h-9 w-9 items-center justify-center rounded-full border border-white/30 text-[var(--section-fg-muted)] transition-colors duration-300 hover:border-white hover:text-white sm:h-10 sm:w-10"
+                  className="flex h-9 w-9 items-center justify-center rounded-full border border-white/30 text-white/70 transition-colors duration-300 hover:border-white hover:text-white sm:h-10 sm:w-10"
                 >
                   <Icon className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
                 </a>
@@ -327,7 +327,7 @@ export function StoreFooter(_props: StoreFooterProps = {}) {
             })}
           </div>
 
-          <p className="shrink-0 text-center font-store-body text-sm uppercase tracking-[0.14em] text-[var(--section-fg-muted)] lg:text-right">
+          <p className="shrink-0 text-center font-store-body text-sm uppercase tracking-[0.14em] text-white/70 lg:text-right">
             © {year} Faithful Meat.
             <span className="hidden sm:inline"> </span>
             <br className="sm:hidden" />

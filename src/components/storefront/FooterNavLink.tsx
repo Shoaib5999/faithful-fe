@@ -10,7 +10,7 @@ type FooterNavLinkProps = {
 };
 
 const defaultClass =
-  "group relative inline-block font-store-display text-base leading-snug tracking-[0.02em] text-[var(--section-fg-muted)] transition-colors duration-300 hover:text-[var(--section-fg)]";
+  "group relative inline-block font-store-display text-base leading-snug tracking-[0.02em] text-white/70 transition-colors duration-300 hover:text-white";
 
 function LinkContent({ label }: { label: string }) {
   return (
