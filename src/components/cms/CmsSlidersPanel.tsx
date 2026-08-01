@@ -96,19 +96,42 @@ export const CmsSlidersPanel: React.FC = () => {
                   {({ listeners, attributes }) => (
                     <div className="group overflow-hidden rounded-xl border border-border bg-card">
                       <div className="relative">
-                        <AspectRatio ratio={21 / 9}>
-                          {slider.imageUrl || slider.imageUrlMobile ? (
-                            <img
-                              src={slider.imageUrl ?? slider.imageUrlMobile ?? ""}
-                              alt={slider.title}
-                              className="h-full w-full object-cover"
-                            />
-                          ) : (
-                            <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-primary/20 to-primary/5">
-                              <span className="text-lg font-semibold text-primary">{slider.title}</span>
-                            </div>
-                          )}
-                        </AspectRatio>
+                        <div className="flex">
+                          <div className="w-1/2 border-r border-border/50">
+                            <AspectRatio
+                              ratio={SLIDER_IMAGE_SPECS.desktop.width / SLIDER_IMAGE_SPECS.desktop.height}
+                            >
+                              {slider.imageUrl ? (
+                                <img
+                                  src={slider.imageUrl}
+                                  alt={`${slider.title} — desktop`}
+                                  className="h-full w-full object-cover"
+                                />
+                              ) : (
+                                <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-primary/20 to-primary/5">
+                                  <span className="text-[10px] font-semibold text-primary">No desktop image</span>
+                                </div>
+                              )}
+                            </AspectRatio>
+                          </div>
+                          <div className="w-1/2">
+                            <AspectRatio
+                              ratio={SLIDER_IMAGE_SPECS.mobile.width / SLIDER_IMAGE_SPECS.mobile.height}
+                            >
+                              {slider.imageUrlMobile || slider.imageUrl ? (
+                                <img
+                                  src={slider.imageUrlMobile ?? slider.imageUrl ?? ""}
+                                  alt={`${slider.title} — mobile`}
+                                  className="h-full w-full object-cover"
+                                />
+                              ) : (
+                                <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-primary/20 to-primary/5">
+                                  <span className="text-[10px] font-semibold text-primary">No mobile image</span>
+                                </div>
+                              )}
+                            </AspectRatio>
+                          </div>
+                        </div>
                         <div className="absolute left-2 top-2 z-10">
                           <DragHandle listeners={listeners} attributes={attributes} />
                         </div>

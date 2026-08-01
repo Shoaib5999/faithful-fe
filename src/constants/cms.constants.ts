@@ -1,20 +1,20 @@
 import type { CmsCategorySlot } from "@/types/cms.types";
 
-/** Hero slider image specs — matches storefront `HeroSlider` frame (object-cover). */
+/** Hero slider image specs — matches storefront `HomeHeroBanner` frame (object-cover). */
 export const SLIDER_IMAGE_SPECS = {
   desktop: {
     label: "Desktop",
-    width: 1920,
-    height: 823,
-    ratio: "21:9",
-    hint: "1920×823 px (21:9)",
+    width: 1600,
+    height: 1280,
+    ratio: "5:4",
+    hint: "1600×1280 px (5:4) — shown at ≥1024px width",
   },
   mobile: {
     label: "Mobile",
     width: 1200,
     height: 900,
     ratio: "4:3",
-    hint: "1200×900 px (4:3)",
+    hint: "1200×900 px (4:3) — shown below 1024px width",
   },
 } as const;
 

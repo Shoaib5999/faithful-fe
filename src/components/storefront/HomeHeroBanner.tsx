@@ -1,6 +1,7 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { Award, ShieldCheck, Truck, UtensilsCrossed } from "lucide-react";
+import useEmblaCarousel from "embla-carousel-react";
+import { Award, ChevronLeft, ChevronRight, ShieldCheck, Truck, UtensilsCrossed } from "lucide-react";
 import { resolveSlideImageUrl } from "@/lib/slider-utils";
 import { cn } from "@/lib/utils";
 import type { HeroSlide } from "@/types/cms.types";
@@ -16,24 +17,65 @@ const FEATURE_BADGES = [
 ] as const;
 
 const ROTATE_MS = 6000;
+/** Matches the layout's own stacked → split-column breakpoint (`lg`). */
+const MOBILE_QUERY = "(max-width: 1023px)";
+
+const FALLBACK_SLIDES: HeroSlide[] = [
+  { id: "fallback", title: "", subtitle: "", imageUrl: FALLBACK_IMAGE, imageUrlMobile: null, linkUrl: "/collection" },
+];
 
 type HomeHeroBannerProps = {
   slides?: HeroSlide[];
 };
 
 export function HomeHeroBanner({ slides = [] }: HomeHeroBannerProps) {
-  const images =
-    slides.length > 0 ? slides.map((s) => resolveSlideImageUrl(s, false)) : [FALLBACK_IMAGE];
+  const activeSlides = slides.length > 0 ? slides : FALLBACK_SLIDES;
 
-  const [index, setIndex] = useState(0);
+  const [isMobile, setIsMobile] = useState(
+    () => typeof window !== "undefined" && window.matchMedia(MOBILE_QUERY).matches,
+  );
+  const [selectedIndex, setSelectedIndex] = useState(0);
+  const [isHovering, setIsHovering] = useState(false);
+
+  const [emblaRef, emblaApi] = useEmblaCarousel({
+    loop: activeSlides.length > 1,
+    align: "start",
+    duration: 24,
+  });
+
+  const onSelect = useCallback(() => {
+    if (!emblaApi) return;
+    setSelectedIndex(emblaApi.selectedScrollSnap());
+  }, [emblaApi]);
 
   useEffect(() => {
-    if (images.length <= 1) return;
+    const mq = window.matchMedia(MOBILE_QUERY);
+    const update = () => setIsMobile(mq.matches);
+    update();
+    mq.addEventListener("change", update);
+    return () => mq.removeEventListener("change", update);
+  }, []);
+
+  useEffect(() => {
+    if (!emblaApi) return;
+    onSelect();
+    emblaApi.on("select", onSelect);
+    emblaApi.on("reInit", onSelect);
+    return () => {
+      emblaApi.off("select", onSelect);
+      emblaApi.off("reInit", onSelect);
+    };
+  }, [emblaApi, onSelect]);
+
+  useEffect(() => {
+    if (!emblaApi || activeSlides.length <= 1 || isHovering) return;
     const timer = window.setInterval(() => {
-      setIndex((i) => (i + 1) % images.length);
+      emblaApi.scrollNext();
     }, ROTATE_MS);
     return () => window.clearInterval(timer);
-  }, [images.length]);
+  }, [emblaApi, activeSlides.length, isHovering, selectedIndex]);
+
+  const showControls = activeSlides.length > 1;
 
   return (
     <section className="relative w-full overflow-hidden bg-white" aria-label="Faithful Meat">
@@ -87,20 +129,31 @@ export function HomeHeroBanner({ slides = [] }: HomeHeroBannerProps) {
         </div>
 
         {/* Right — image */}
-        <div className="relative order-1 aspect-[4/3] w-full overflow-hidden rounded-lg bg-[var(--store-ink)] sm:aspect-[16/10] lg:order-2 lg:aspect-[5/4]">
-          {images.map((src, i) => (
-            <img
-              key={src + i}
-              src={src}
-              alt="Fresh meat and fish selection"
-              className={cn(
-                "absolute inset-0 h-full w-full object-cover transition-opacity duration-1000",
-                i === index ? "opacity-100" : "opacity-0",
-              )}
-              loading={i === 0 ? "eager" : "lazy"}
-              draggable={false}
-            />
-          ))}
+        <div
+          className="group/hero relative order-1 aspect-[4/3] w-full overflow-hidden rounded-2xl bg-[var(--store-ink)] shadow-[var(--store-shadow-lg)] ring-1 ring-black/5 lg:order-2 lg:aspect-[5/4]"
+          onMouseEnter={() => setIsHovering(true)}
+          onMouseLeave={() => setIsHovering(false)}
+        >
+          <div ref={emblaRef} className="h-full w-full overflow-hidden">
+            <div className="flex h-full touch-pan-y">
+              {activeSlides.map((slide, i) => (
+                <div key={slide.id} className="relative h-full min-w-0 shrink-0 grow-0 basis-full">
+                  <img
+                    src={resolveSlideImageUrl(slide, isMobile)}
+                    alt="Fresh meat and fish selection"
+                    className="h-full w-full object-cover"
+                    loading={i === 0 ? "eager" : "lazy"}
+                    draggable={false}
+                  />
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div
+            className="pointer-events-none absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-black/45 to-transparent"
+            aria-hidden
+          />
 
           <div
             className="pointer-events-none absolute right-4 top-4 flex h-16 w-16 flex-col items-center justify-center rounded-full border-2 border-white bg-[var(--store-red)] text-center shadow-lg sm:h-20 sm:w-20"
@@ -114,29 +167,48 @@ export function HomeHeroBanner({ slides = [] }: HomeHeroBannerProps) {
             </span>
           </div>
 
-          {images.length > 1 ? (
-            <div
-              className="absolute inset-x-0 bottom-4 flex items-center justify-center gap-1.5"
-              role="tablist"
-              aria-label="Hero image navigation"
-            >
-              {images.map((src, i) => (
-                <button
-                  key={src + i}
-                  type="button"
-                  role="tab"
-                  aria-selected={i === index}
-                  aria-label={`Show image ${i + 1}`}
-                  onClick={() => setIndex(i)}
-                  className={cn(
-                    "h-1.5 rounded-full transition-all duration-300",
-                    i === index
-                      ? "w-6 bg-[var(--store-red)]"
-                      : "w-1.5 bg-white/50 hover:bg-white/75",
-                  )}
-                />
-              ))}
-            </div>
+          {showControls ? (
+            <>
+              <button
+                type="button"
+                aria-label="Previous image"
+                onClick={() => emblaApi?.scrollPrev()}
+                className="absolute left-3 top-1/2 z-10 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full bg-black/30 text-white opacity-0 backdrop-blur-sm transition-opacity duration-200 hover:bg-black/50 focus-visible:opacity-100 group-hover/hero:opacity-100"
+              >
+                <ChevronLeft className="h-5 w-5" strokeWidth={2} aria-hidden />
+              </button>
+              <button
+                type="button"
+                aria-label="Next image"
+                onClick={() => emblaApi?.scrollNext()}
+                className="absolute right-3 top-1/2 z-10 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full bg-black/30 text-white opacity-0 backdrop-blur-sm transition-opacity duration-200 hover:bg-black/50 focus-visible:opacity-100 group-hover/hero:opacity-100"
+              >
+                <ChevronRight className="h-5 w-5" strokeWidth={2} aria-hidden />
+              </button>
+
+              <div
+                className="absolute inset-x-0 bottom-4 flex items-center justify-center gap-1.5"
+                role="tablist"
+                aria-label="Hero image navigation"
+              >
+                {activeSlides.map((slide, i) => (
+                  <button
+                    key={slide.id}
+                    type="button"
+                    role="tab"
+                    aria-selected={i === selectedIndex}
+                    aria-label={`Show image ${i + 1}`}
+                    onClick={() => emblaApi?.scrollTo(i)}
+                    className={cn(
+                      "h-1.5 rounded-full transition-all duration-300",
+                      i === selectedIndex
+                        ? "w-6 bg-[var(--store-red)]"
+                        : "w-1.5 bg-white/50 hover:bg-white/75",
+                    )}
+                  />
+                ))}
+              </div>
+            </>
           ) : null}
         </div>
       </div>

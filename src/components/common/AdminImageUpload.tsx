@@ -3,9 +3,11 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { InlineAlert } from "@/components/common/InlineAlert";
+import { ImageCropperDialog } from "@/components/common/ImageCropperDialog";
 import { Loader2, Link2, Upload, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { getErrorMessage } from "@/lib/error";
+import { readFileAsDataUrl } from "@/lib/image-crop";
 
 type AdminImageUploadProps = {
   label?: string;
@@ -18,6 +20,14 @@ type AdminImageUploadProps = {
   disabled?: boolean;
   allowUrl?: boolean;
   urlPlaceholder?: string;
+  /** Preview box aspect ratio (width / height). Defaults to a 1:1 square. */
+  previewAspectRatio?: number;
+  /**
+   * When set, selecting a file opens a crop dialog locked to this aspect
+   * ratio (width / height) before upload, so the image fits perfectly.
+   */
+  cropAspectRatio?: number;
+  cropLabel?: string;
 };
 
 const isValidImageUrl = (raw: string): boolean => {
@@ -40,17 +50,18 @@ export const AdminImageUpload: React.FC<AdminImageUploadProps> = ({
   disabled = false,
   allowUrl = false,
   urlPlaceholder = "https://example.com/note.jpg",
+  previewAspectRatio = 1,
+  cropAspectRatio,
+  cropLabel,
 }) => {
   const inputRef = useRef<HTMLInputElement>(null);
   const [isUploading, setIsUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [urlInput, setUrlInput] = useState("");
+  const [cropSource, setCropSource] = useState<{ src: string; fileName: string } | null>(null);
+  const previewStyle = { aspectRatio: previewAspectRatio, height: "7rem" };
 
-  const handleSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    e.target.value = "";
-    if (!file) return;
-
+  const uploadFile = async (file: File) => {
     setIsUploading(true);
     setError(null);
     try {
@@ -62,6 +73,26 @@ export const AdminImageUpload: React.FC<AdminImageUploadProps> = ({
     } finally {
       setIsUploading(false);
     }
+  };
+
+  const handleSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    e.target.value = "";
+    if (!file) return;
+
+    if (cropAspectRatio) {
+      setError(null);
+      const dataUrl = await readFileAsDataUrl(file);
+      setCropSource({ src: dataUrl, fileName: file.name });
+      return;
+    }
+
+    await uploadFile(file);
+  };
+
+  const handleCropConfirm = async (croppedFile: File) => {
+    setCropSource(null);
+    await uploadFile(croppedFile);
   };
 
   const handleRemove = () => {
@@ -88,7 +119,8 @@ export const AdminImageUpload: React.FC<AdminImageUploadProps> = ({
           <img
             src={value}
             alt=""
-            className="h-28 w-28 rounded-md border border-border object-cover"
+            style={previewStyle}
+            className="rounded-md border border-border object-cover"
           />
           {!disabled && (
             <button
@@ -103,8 +135,9 @@ export const AdminImageUpload: React.FC<AdminImageUploadProps> = ({
         </div>
       ) : (
         <label
+          style={previewStyle}
           className={cn(
-            "flex h-28 w-28 cursor-pointer flex-col items-center justify-center gap-1 rounded-md border border-dashed border-border text-muted-foreground transition-colors",
+            "flex cursor-pointer flex-col items-center justify-center gap-1 rounded-md border border-dashed border-border text-muted-foreground transition-colors",
             !disabled && "hover:bg-muted/50",
             (disabled || isUploading) && "pointer-events-none opacity-60",
           )}
@@ -172,6 +205,18 @@ export const AdminImageUpload: React.FC<AdminImageUploadProps> = ({
       )}
       {hint && <p className="text-xs text-muted-foreground">{hint}</p>}
       {error && <InlineAlert type="error" message={error} />}
+
+      {cropAspectRatio && (
+        <ImageCropperDialog
+          open={Boolean(cropSource)}
+          imageSrc={cropSource?.src ?? null}
+          fileName={cropSource?.fileName ?? "image.jpg"}
+          aspectRatio={cropAspectRatio}
+          aspectLabel={cropLabel}
+          onCancel={() => setCropSource(null)}
+          onConfirm={handleCropConfirm}
+        />
+      )}
     </div>
   );
 };

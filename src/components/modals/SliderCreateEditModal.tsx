@@ -112,7 +112,10 @@ export const SliderCreateEditModal: React.FC = () => {
             const result = await uploadSliderImage(file);
             return { url: result.url, storageKey: result.storageKey };
           }}
-          hint={SLIDER_IMAGE_SPECS.desktop.hint}
+          hint={`${SLIDER_IMAGE_SPECS.desktop.hint}. Crop it to fit before uploading.`}
+          previewAspectRatio={SLIDER_IMAGE_SPECS.desktop.width / SLIDER_IMAGE_SPECS.desktop.height}
+          cropAspectRatio={SLIDER_IMAGE_SPECS.desktop.width / SLIDER_IMAGE_SPECS.desktop.height}
+          cropLabel={`Desktop ${SLIDER_IMAGE_SPECS.desktop.ratio}`}
         />
         <AdminImageUpload
           label="Mobile image"
@@ -122,7 +125,10 @@ export const SliderCreateEditModal: React.FC = () => {
             const result = await uploadSliderImage(file);
             return { url: result.url, storageKey: result.storageKey };
           }}
-          hint={`${SLIDER_IMAGE_SPECS.mobile.hint}. Uses desktop if empty.`}
+          hint={`${SLIDER_IMAGE_SPECS.mobile.hint}. Uses desktop if empty. Crop it to fit before uploading.`}
+          previewAspectRatio={SLIDER_IMAGE_SPECS.mobile.width / SLIDER_IMAGE_SPECS.mobile.height}
+          cropAspectRatio={SLIDER_IMAGE_SPECS.mobile.width / SLIDER_IMAGE_SPECS.mobile.height}
+          cropLabel={`Mobile ${SLIDER_IMAGE_SPECS.mobile.ratio}`}
         />
         <div className="flex flex-col gap-1">
           <Label>Link URL</Label>

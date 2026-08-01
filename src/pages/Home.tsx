@@ -1,7 +1,12 @@
 import { useEffect, useState } from "react";
+import { BestsellersSection } from "@/components/storefront/BestsellersSection";
 import { DeliveryInfoStrip } from "@/components/storefront/DeliveryInfoStrip";
 import { DeliveryOrderBar } from "@/components/storefront/DeliveryOrderBar";
+import { FeaturedCollectionsSection } from "@/components/storefront/FeaturedCollectionsSection";
 import { HomeHeroBanner } from "@/components/storefront/HomeHeroBanner";
+import { InstagramFollowSection } from "@/components/storefront/InstagramFollowSection";
+import { NewArrivalsSection } from "@/components/storefront/NewArrivalsSection";
+import { ProcessSection } from "@/components/storefront/ProcessSection";
 import type { HeroSlide } from "@/types/cms.types";
 import { ShopByCategoryGrid } from "@/components/storefront/ShopByCategoryGrid";
 import { SpecialCutsSection } from "@/components/storefront/SpecialCutsSection";
@@ -36,8 +41,13 @@ export default function Home() {
         <HomeHeroBanner slides={heroSlides} />
         <DeliveryInfoStrip />
         <ShopByCategoryGrid />
-        <WhyChooseSection />
+        <BestsellersSection theme="dark" />
         <SpecialCutsSection />
+        <NewArrivalsSection theme="light" />
+        <FeaturedCollectionsSection theme="dark" />
+        <ProcessSection theme="light" />
+        <WhyChooseSection />
+        <InstagramFollowSection theme="light" />
         <DeliveryOrderBar />
         <StoreFooter />
         <WhatsAppButton />
