@@ -17,6 +17,7 @@ export function BestsellersSection({ theme = "light" }: BestsellersSectionProps)
   return (
     <StoreHomeSection
       theme={theme}
+      compact
       className="overflow-hidden"
       aria-labelledby="bestsellers-heading"
     >

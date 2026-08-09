@@ -87,10 +87,8 @@ function GallerySlides({
               src={src}
               alt={`${productName} — view ${i + 1}`}
               className={cn(
-                "h-full w-full object-center",
-                isProductPlaceholderImage(src)
-                  ? "object-contain p-10"
-                  : "object-cover",
+                "h-full w-full object-contain object-center",
+                isProductPlaceholderImage(src) && "p-10",
               )}
               loading={i === 0 ? "eager" : "lazy"}
               draggable={false}
@@ -176,8 +174,8 @@ function GalleryThumbnailStrip({
             src={src}
             alt=""
             className={cn(
-              "absolute inset-0 h-full w-full object-center",
-              isProductPlaceholderImage(src) ? "object-contain p-2" : "object-cover",
+              "absolute inset-0 h-full w-full object-contain object-center",
+              isProductPlaceholderImage(src) && "p-2",
             )}
             draggable={false}
           />

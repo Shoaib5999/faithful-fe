@@ -214,7 +214,7 @@ export const StoreProductCard = memo(function StoreProductCard({
                 <img
                   src={product.image}
                   alt=""
-                  className="block h-full w-full object-cover object-center transition-transform duration-700 group-hover:scale-105"
+                  className="block h-full w-full object-contain object-center transition-transform duration-700 group-hover:scale-105"
                   loading="lazy"
                   draggable={false}
                 />
@@ -375,7 +375,7 @@ export const StoreProductCard = memo(function StoreProductCard({
               <img
                 src={product.image}
                 alt=""
-                className="block h-full w-full object-cover object-center transition-transform duration-700 group-hover:scale-[1.03]"
+                className="block h-full w-full object-contain object-center transition-transform duration-700 group-hover:scale-[1.03]"
                 loading="lazy"
                 draggable={false}
               />

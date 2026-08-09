@@ -14,7 +14,7 @@ export function NewArrivalsSection({ theme = "dark" }: NewArrivalsSectionProps) 
   const products = useMemo(() => selectNewArrivals(catalog, 12), [catalog]);
 
   return (
-    <StoreHomeSection theme={theme} aria-labelledby="new-arrivals-heading">
+    <StoreHomeSection theme={theme} compact aria-labelledby="new-arrivals-heading">
       <div className="mx-auto max-w-[1440px] px-6 md:px-12 xl:px-16">
         <StoreProductSectionHeader
           id="new-arrivals-heading"

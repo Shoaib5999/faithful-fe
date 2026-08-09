@@ -177,13 +177,20 @@ export function HomeHeroBanner({ slides = [] }: HomeHeroBannerProps) {
                       key={slide.id}
                       className="relative h-full min-w-0 shrink-0 grow-0 basis-full"
                     >
-                      <img
-                        src={resolveSlideImageUrl(slide, isMobile)}
-                        alt="Fresh meat and fish selection"
-                        className="h-full w-full object-cover"
-                        loading={i === 0 ? "eager" : "lazy"}
+                      <Link
+                        to={slide.linkUrl || "/collection"}
+                        aria-label={slide.linkLabel || "Shop this selection"}
+                        className="block h-full w-full"
                         draggable={false}
-                      />
+                      >
+                        <img
+                          src={resolveSlideImageUrl(slide, isMobile)}
+                          alt="Fresh meat and fish selection"
+                          className="h-full w-full object-contain"
+                          loading={i === 0 ? "eager" : "lazy"}
+                          draggable={false}
+                        />
+                      </Link>
                     </div>
                   ))}
                 </div>
@@ -191,22 +198,13 @@ export function HomeHeroBanner({ slides = [] }: HomeHeroBannerProps) {
 
               <div className="pointer-events-none absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-black/45 to-transparent" />
 
-              <div className="pointer-events-none absolute right-4 top-4 flex h-16 w-16 flex-col items-center justify-center rounded-full border-2 border-white bg-[var(--store-red)] text-center shadow-lg sm:h-20 sm:w-20">
-                <span className="font-store-body text-[8px] font-bold uppercase leading-none text-white sm:text-[9px]">
-                  Premium
-                </span>
-                <span className="mt-1 font-store-body text-[8px] font-bold uppercase leading-none text-white sm:text-[9px]">
-                  Quality
-                </span>
-              </div>
-
               {showControls && (
                 <>
                   <button
                     type="button"
                     aria-label="Previous image"
                     onClick={() => emblaApi?.scrollPrev()}
-                    className="absolute left-3 top-1/2 z-10 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full bg-black/30 text-white opacity-0 backdrop-blur-sm transition-opacity duration-200 hover:bg-black/50 focus-visible:opacity-100 group-hover/hero:opacity-100"
+                    className="absolute left-3 top-1/2 z-10 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full bg-black/20 text-white opacity-0 backdrop-blur-sm transition-opacity duration-200 hover:bg-black/40 focus-visible:opacity-100 group-hover/hero:opacity-100"
                   >
                     <ChevronLeft className="h-5 w-5" />
                   </button>
@@ -215,7 +213,7 @@ export function HomeHeroBanner({ slides = [] }: HomeHeroBannerProps) {
                     type="button"
                     aria-label="Next image"
                     onClick={() => emblaApi?.scrollNext()}
-                    className="absolute right-3 top-1/2 z-10 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full bg-black/30 text-white opacity-0 backdrop-blur-sm transition-opacity duration-200 hover:bg-black/50 focus-visible:opacity-100 group-hover/hero:opacity-100"
+                    className="absolute right-3 top-1/2 z-10 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full bg-black/20 text-white opacity-0 backdrop-blur-sm transition-opacity duration-200 hover:bg-black/40 focus-visible:opacity-100 group-hover/hero:opacity-100"
                   >
                     <ChevronRight className="h-5 w-5" />
                   </button>

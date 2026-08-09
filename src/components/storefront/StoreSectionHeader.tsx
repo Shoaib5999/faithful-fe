@@ -33,7 +33,7 @@ export function StoreSectionHeader({
   className,
 }: StoreSectionHeaderProps) {
   const isCenter = align === "center";
-  const onLightSurface = theme === "light" || theme === "red" || theme === "dark";
+  const onLightSurface = theme === "light" || theme === "red";
   const subtitleRef = useRef<HTMLParagraphElement>(null);
   const headerRef = useRef<HTMLElement>(null);
 
@@ -55,13 +55,16 @@ export function StoreSectionHeader({
 
   if (!isCenter) {
     return (
-      <header ref={headerRef} className={cn("mb-8 w-full text-left md:mb-16", className)}>
+      <header ref={headerRef} className={cn("mb-5 w-full text-left md:mb-8", className)}>
         <div className="min-w-0">
           {eyebrow ? (
             <RevealText
               delay={0}
               variant="eyebrow"
-              className="font-store-body text-xs font-semibold uppercase tracking-[0.32em] text-[var(--store-red-dark)]"
+              className={cn(
+                "font-store-body text-xs font-semibold uppercase tracking-[0.32em]",
+                onLightSurface ? "text-[var(--store-red-dark)]" : "text-[var(--store-red)]",
+              )}
             >
               {eyebrow}
             </RevealText>
@@ -70,7 +73,7 @@ export function StoreSectionHeader({
             as="h2"
             id={id}
             className={cn(
-              "font-display text-[clamp(1.5rem,5vw,3.25rem)] font-normal leading-[1.08] tracking-wide",
+              "font-display text-[clamp(1.25rem,3.5vw,2.25rem)] font-normal! leading-[1.15] tracking-normal",
               onLightSurface ? "text-[var(--store-ink)]" : "text-white",
               eyebrow && "mt-1.5",
             )}

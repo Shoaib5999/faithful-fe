@@ -291,7 +291,7 @@ function DesktopNav({
           <div className="grid grid-cols-[auto_1fr_auto] items-center gap-4 py-3">
             {/* LEFT — Logo */}
             <div ref={logoRef} className="flex origin-left items-center justify-start">
-              <StoreLogo variant="light" size="lg" tagline />
+              <StoreLogo size="lg" />
             </div>
 
             {/* CENTER — Nav links */}
@@ -479,7 +479,7 @@ function MobileTopBar({
           </div>
 
           <div className="flex items-center justify-center">
-            <StoreLogo variant="light" size="md" />
+            <StoreLogo size="md" />
           </div>
 
           <div className="flex items-center justify-end gap-1">

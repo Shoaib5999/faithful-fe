@@ -101,7 +101,7 @@ export function FeaturedCollectionsSection({ theme = "light" }: FeaturedCollecti
   const { data: homeImages = {} } = useStorefrontHomeImages();
 
   return (
-    <StoreHomeSection theme={theme} aria-labelledby="featured-collections-heading">
+    <StoreHomeSection theme={theme} compact aria-labelledby="featured-collections-heading">
       <div className="mx-auto max-w-[1440px] px-4 sm:px-6 md:px-12 xl:px-16">
         <header className="mb-6 sm:mb-8 md:mb-12">
           <RevealText
