@@ -101,6 +101,9 @@ export interface Address {
   postalCode: string;
   country: string;
   isDefault: boolean;
+  /** Captured via browser geolocation at address entry — no maps/geocoding provider involved. */
+  latitude?: number | null;
+  longitude?: number | null;
 }
 
 export type CustomerType = "walkin" | "online";

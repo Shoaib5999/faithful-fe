@@ -18,6 +18,13 @@ import { PermissionGate } from "@/components/common/PermissionGate";
 import { SectionCard } from "@/components/common/SectionCard";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { formatCurrency, formatDateTime } from "@/lib/formatters";
 import {
   canShipWithShiprocket,
@@ -29,6 +36,7 @@ import {
   orderMayReceiveShiprocketUpdates,
   ORDERS_SHIPROCKET_POLL_MS,
 } from "@/lib/order-display";
+import { ADMIN_MANUAL_STATUS_CODES, SHIPROCKET_ENABLED } from "@/constants/order.constants";
 import { cn } from "@/lib/utils";
 import type { Order, ShipmentTracking } from "@/types/commerce.types";
 import type { ColorVariant } from "@/types/common.types";
@@ -117,6 +125,9 @@ export const OrderDetailModal: React.FC = () => {
 
   const confirmedStatus = activeOrderStatuses.find((s) => s.code === "CONFIRMED");
   const cancelledStatus = activeOrderStatuses.find((s) => s.code === "CANCELLED");
+  const manualStatusOptions = activeOrderStatuses.filter((s) =>
+    (ADMIN_MANUAL_STATUS_CODES as readonly string[]).includes(s.code),
+  );
 
   const patchOrderInCache = (patch: Partial<Order>) => {
     if (!order) return;
@@ -137,6 +148,25 @@ export const OrderDetailModal: React.FC = () => {
       setStatusFeedback({ type: "success", message: "✓ Confirmed — now pack and click Ship with Shiprocket below" });
       setStatusHighlight(true);
       window.setTimeout(() => setStatusHighlight(false), 2500);
+    } finally {
+      setIsUpdating(false);
+    }
+  };
+
+  const handleManualStatusChange = async (newStatus: string) => {
+    if (!order || newStatus === displayStatus) return;
+    setIsUpdating(true);
+    manualStatusChangeRef.current = true;
+    try {
+      await handleUpdateStatus(order.id, newStatus, "Status updated manually by admin", user?.name ?? "System");
+      setOptimisticStatus(newStatus);
+      patchOrderInCache({ status: newStatus });
+      setStatusFeedback({
+        type: "success",
+        message: `Status updated to ${getOrderStatusLabel(newStatus, orderStatuses)}`,
+      });
+      setStatusHighlight(true);
+      window.setTimeout(() => setStatusHighlight(false), 2000);
     } finally {
       setIsUpdating(false);
     }
@@ -269,6 +299,28 @@ export const OrderDetailModal: React.FC = () => {
         {/* Action buttons */}
         <PermissionGate moduleKey="orders" operation="edit">
           <div className="flex flex-col gap-2">
+            {!isFinal && (
+              <div className="flex items-center gap-2">
+                <span className="shrink-0 text-xs text-muted-foreground">Update status</span>
+                <Select
+                  value={displayStatus}
+                  onValueChange={(v) => void handleManualStatusChange(v)}
+                  disabled={busy}
+                >
+                  <SelectTrigger className="h-9 flex-1">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {manualStatusOptions.map((s) => (
+                      <SelectItem key={s.code} value={s.code}>
+                        {s.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
+
             {showCodConfirm && (
               <Button
                 onClick={handleConfirmOrder}
@@ -279,7 +331,9 @@ export const OrderDetailModal: React.FC = () => {
               </Button>
             )}
 
-            {showShipButton && (
+            {/* Shiprocket pan-India shipping — disabled while delivery is manual/in-city. Flip
+                SHIPROCKET_ENABLED in constants/order.constants.ts to bring this back. */}
+            {SHIPROCKET_ENABLED && showShipButton && (
               <Button onClick={handleShipWithShiprocket} disabled={busy} className="w-full h-11">
                 {shippingBusy ? (
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -384,10 +438,23 @@ export const OrderDetailModal: React.FC = () => {
             {order.shippingAddress && (
               <div className="flex items-start gap-2">
                 <MapPin className="h-4 w-4 mt-0.5 text-muted-foreground shrink-0" />
-                <p className="text-muted-foreground">
-                  {order.shippingAddress.line1}, {order.shippingAddress.city},{" "}
-                  {order.shippingAddress.state} {order.shippingAddress.postalCode}
-                </p>
+                <div>
+                  <p className="text-muted-foreground">
+                    {order.shippingAddress.line1}, {order.shippingAddress.city},{" "}
+                    {order.shippingAddress.state} {order.shippingAddress.postalCode}
+                  </p>
+                  {order.shippingAddress.latitude != null && order.shippingAddress.longitude != null && (
+                    <a
+                      href={`https://www.google.com/maps?q=${order.shippingAddress.latitude},${order.shippingAddress.longitude}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="mt-1 inline-flex items-center gap-1 text-xs font-medium text-primary hover:underline"
+                    >
+                      <ExternalLink className="h-3 w-3" />
+                      View pinned location on map
+                    </a>
+                  )}
+                </div>
               </div>
             )}
           </div>

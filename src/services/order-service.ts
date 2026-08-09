@@ -19,6 +19,8 @@ type ApiAddress = {
   state: string;
   pincode: string;
   isDefault: boolean;
+  latitude?: number | null;
+  longitude?: number | null;
 };
 type ApiPaymentMode = { id: string; label: string; code: string; isOnline: boolean };
 type ApiOrderStatus = { id: string; code: string };
@@ -108,6 +110,8 @@ const mapAddress = (row: ApiAddress | null | undefined, customerId: string): Add
     postalCode: row.pincode,
     country: "",
     isDefault: row.isDefault,
+    latitude: row.latitude ?? null,
+    longitude: row.longitude ?? null,
   };
 };
 

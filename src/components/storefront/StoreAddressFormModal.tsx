@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
-import { Check, ChevronDown, ChevronUp, Loader2, X } from "lucide-react";
+import { Check, ChevronDown, ChevronUp, Loader2, LocateFixed, X } from "lucide-react";
 import {
   StoreFormLabel,
   StoreGhostButton,
@@ -36,6 +36,8 @@ export type StoreAddressFormValues = {
   state: string;
   postal: string;
   isDefault: boolean;
+  latitude: number | null;
+  longitude: number | null;
 };
 
 export const emptyStoreAddressForm = (): StoreAddressFormValues => ({
@@ -48,6 +50,8 @@ export const emptyStoreAddressForm = (): StoreAddressFormValues => ({
   postal: "",
   phone: "",
   isDefault: false,
+  latitude: null,
+  longitude: null,
 });
 
 export const storeAddressFormFromApi = (a: StoreAddressApi): StoreAddressFormValues => ({
@@ -61,6 +65,8 @@ export const storeAddressFormFromApi = (a: StoreAddressApi): StoreAddressFormVal
   state: a.state,
   postal: a.pincode,
   isDefault: a.isDefault,
+  latitude: a.latitude ?? null,
+  longitude: a.longitude ?? null,
 });
 
 type StoreAddressFormModalProps = {
@@ -246,6 +252,7 @@ export function StoreAddressFormModal({
   const { notify } = useNotification();
   const [form, setForm] = useState<StoreAddressFormValues>(emptyStoreAddressForm());
   const [saving, setSaving] = useState(false);
+  const [locating, setLocating] = useState(false);
 
   useEffect(() => {
     if (!open) return;
@@ -257,6 +264,30 @@ export function StoreAddressFormModal({
   if (!open) return null;
 
   const isEdit = Boolean(form.id);
+
+  const useCurrentLocation = () => {
+    if (!navigator.geolocation) {
+      notify("Location isn't supported on this device.", "error");
+      return;
+    }
+    setLocating(true);
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        setForm((f) => ({
+          ...f,
+          latitude: position.coords.latitude,
+          longitude: position.coords.longitude,
+        }));
+        setLocating(false);
+        notify("Location captured. Please fill in the address details below.", "success");
+      },
+      () => {
+        setLocating(false);
+        notify("Couldn't get your location. You can still fill the address manually.", "error");
+      },
+      { enableHighAccuracy: true, timeout: 10_000 },
+    );
+  };
 
   const save = async () => {
     if (!form.state.trim()) {
@@ -276,6 +307,8 @@ export function StoreAddressFormModal({
         state: form.state,
         pincode: form.postal,
         isDefault: form.isDefault,
+        latitude: form.latitude,
+        longitude: form.longitude,
       };
       const saved = form.id
         ? await updateStoreAddress(form.id, body)
@@ -339,6 +372,26 @@ export function StoreAddressFormModal({
                 modalScrollClass,
               )}
             >
+              <button
+                type="button"
+                onClick={useCurrentLocation}
+                disabled={locating}
+                className={cn(
+                  "mb-4 flex w-full items-center justify-center gap-2 rounded-md border border-dashed border-black/20 bg-[var(--store-cream)]/30 px-4 py-2.5 font-store-body text-xs font-semibold uppercase tracking-wide text-[var(--store-ink)] transition-colors hover:border-[var(--store-red)] hover:bg-[var(--store-cream)]/50 disabled:opacity-60 sm:w-auto",
+                  form.latitude != null && "border-[var(--store-red)]/50",
+                )}
+              >
+                {locating ? (
+                  <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                ) : (
+                  <LocateFixed className="h-3.5 w-3.5" />
+                )}
+                {form.latitude != null ? "Location captured — use again" : "Use my current location"}
+              </button>
+              <p className="-mt-2 mb-4 font-store-body text-xs text-[var(--store-muted)]">
+                This helps us find you for delivery. You'll still need to fill in the details below.
+              </p>
+
               <div className="grid grid-cols-1 gap-y-4 sm:grid-cols-2 sm:gap-x-4 sm:gap-y-5">
                 <AddressField label="Label">
                   <StoreInput

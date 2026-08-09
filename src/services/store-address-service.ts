@@ -12,6 +12,9 @@ export type StoreAddressApi = {
   state: string;
   pincode: string;
   isDefault: boolean;
+  /** Captured via browser geolocation at address entry — no maps/geocoding provider involved. */
+  latitude?: number | null;
+  longitude?: number | null;
   createdAt?: string;
   updatedAt?: string;
 };
@@ -26,6 +29,8 @@ export type StoreAddressInput = {
   state: string;
   pincode: string;
   isDefault?: boolean;
+  latitude?: number | null;
+  longitude?: number | null;
 };
 
 export async function fetchStoreAddresses(): Promise<StoreAddressApi[]> {

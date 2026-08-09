@@ -14,7 +14,7 @@ import { formatCurrency, formatDate } from "@/lib/formatters";
 import { filterActiveOrderStatuses, formatOrderProductsPreview, getOrderDominantLineLabel, getOrderStatusLabel, type ProductLineFilter } from "@/lib/order-display";
 import type { Order } from "@/types/commerce.types";
 import type { ColorVariant } from "@/types/common.types";
-import { Eye } from "lucide-react";
+import { Eye, MapPin } from "lucide-react";
 
 const OrdersPage: React.FC = () => {
   const {
@@ -77,6 +77,32 @@ const OrdersPage: React.FC = () => {
       },
     },
     { key: "date", header: "Date", render: (r) => formatDate(r.createdAt), sortable: true, sortValue: (r) => new Date(r.createdAt).getTime() },
+    {
+      key: "location",
+      header: "Location",
+      render: (r) => {
+        const addr = r.shippingAddress;
+        if (!addr) return <span className="text-muted-foreground">—</span>;
+        const hasPin = addr.latitude != null && addr.longitude != null;
+        return (
+          <div className="flex items-center gap-1.5">
+            <span className="text-sm text-muted-foreground">{addr.city}</span>
+            {hasPin && (
+              <a
+                href={`https://www.google.com/maps?q=${addr.latitude},${addr.longitude}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={(e) => e.stopPropagation()}
+                title="View pinned location on map"
+                className="text-primary hover:opacity-70"
+              >
+                <MapPin className="h-3.5 w-3.5" />
+              </a>
+            )}
+          </div>
+        );
+      },
+    },
     {
       key: "status",
       header: "Status",

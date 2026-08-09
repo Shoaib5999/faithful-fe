@@ -1,4 +1,4 @@
-import { ACTIVE_ORDER_STATUS_CODES } from "@/constants/order.constants";
+import { ACTIVE_ORDER_STATUS_CODES, SHIPROCKET_ENABLED } from "@/constants/order.constants";
 import { COD_PAYMENT_CODE } from "@/constants/payment.constants";
 import type { Order, OrderItem } from "@/types/commerce.types";
 import type { OrderStatus } from "@/types/master.types";
@@ -52,6 +52,11 @@ export const getOrderActionMessage = (phase: OrderActionPhase, order: Order): st
     case "waiting_payment":
       return "Waiting for customer to pay online — you can ship after payment is received";
     case "ready_to_ship":
+      if (!SHIPROCKET_ENABLED) {
+        return isCodOrder(order)
+          ? "Step 2: Pack the order, then update its status manually as it's delivered in-city"
+          : "Payment received — pack the order, then update its status manually as it's delivered in-city";
+      }
       return isCodOrder(order)
         ? "Step 2: Pack the order, then ship with Shiprocket"
         : "Payment received — pack the order, then ship with Shiprocket";
