@@ -84,7 +84,7 @@ export function StoreFooter() {
           className="grid grid-cols-2 gap-x-6 gap-y-10 sm:grid-cols-3 lg:grid-cols-[1.4fr_1fr_1fr_1fr_1fr] lg:gap-x-8"
         >
           <div className="link-col col-span-2 sm:col-span-3 lg:col-span-1">
-            <StoreLogo variant="light" size="lg" tagline />
+            <StoreLogo size="lg" />
             <p className="mt-4 max-w-xs font-store-body text-sm leading-relaxed text-white/60">
               Faithful Meat is your trusted source for 100% fresh, hygienic &amp; premium quality
               meat and fish.

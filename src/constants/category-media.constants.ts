@@ -15,7 +15,10 @@ const sliderPath = (filename: string) =>
  * filenames are placeholders and will 404 until real images are uploaded.
  */
 export const CATEGORY_R2_IMAGES: Record<string, string> = {
-  chicken: categoryPath("chicken.jpg"),
+  // categories/chicken.jpg was never uploaded (404s) — borrowing the
+  // "Whole Chicken (Skinless)" product photo until a dedicated category
+  // shot is uploaded to R2.
+  chicken: `${R2_PUBLIC_BASE}/products/1785692856489-5e857556-IMG_20260802_231642.jpg`,
   mutton: categoryPath("mutton.jpg"),
   fish: categoryPath("fish.jpg"),
   seafood: categoryPath("seafood.jpg"),

@@ -14,9 +14,9 @@ export function ProcessSection({ theme = "light" }: ProcessSectionProps) {
   const stepsRef = useGsapStaggerReveal<HTMLDivElement>({ selector: "[data-step]" });
 
   return (
-    <StoreHomeSection theme={theme} aria-labelledby="process-heading">
+    <StoreHomeSection theme={theme} compact aria-labelledby="process-heading">
       <div className="mx-auto max-w-[1440px] px-6 md:px-12 xl:px-16">
-        <header className="mb-12 md:mb-16">
+        <header className="mb-8 md:mb-10">
           <RevealText variant="eyebrow" className="font-store-body text-xs uppercase tracking-[0.32em] text-[var(--store-red)]">
             How it works
           </RevealText>

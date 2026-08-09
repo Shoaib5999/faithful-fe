@@ -1,50 +1,22 @@
 import { Link } from "react-router-dom";
-import { Beef, Bird, Drumstick, Fish, PocketKnife, Scissors } from "lucide-react";
+import { Beef, Bird, Fish, PocketKnife } from "lucide-react";
 import { CATEGORY_R2_IMAGES } from "@/constants/category-media.constants";
 import { StoreImageWithFallback } from "@/components/storefront/storefront-ui";
 import { cn } from "@/lib/utils";
 
 const TILES = [
   {
-    id: "fresh-chicken",
-    label: "Fresh Chicken",
+    id: "chicken",
+    label: "Chicken",
     to: "/collection?category=chicken",
     icon: Bird,
     image: CATEGORY_R2_IMAGES.chicken,
   },
   {
-    id: "chicken-curry-cut",
-    label: "Chicken Curry Cut",
-    to: "/collection?category=chicken&type=curry-cut",
-    icon: Drumstick,
-    image: CATEGORY_R2_IMAGES.chicken,
-  },
-  {
-    id: "chicken-boneless",
-    label: "Chicken Boneless",
-    to: "/collection?category=chicken&type=boneless",
-    icon: Scissors,
-    image: CATEGORY_R2_IMAGES.chicken,
-  },
-  {
-    id: "fresh-mutton",
-    label: "Fresh Mutton",
+    id: "mutton",
+    label: "Mutton",
     to: "/collection?category=mutton",
     icon: Beef,
-    image: CATEGORY_R2_IMAGES.mutton,
-  },
-  {
-    id: "mutton-curry-cut",
-    label: "Mutton Curry Cut",
-    to: "/collection?category=mutton&type=curry-cut",
-    icon: Drumstick,
-    image: CATEGORY_R2_IMAGES.mutton,
-  },
-  {
-    id: "mutton-boneless",
-    label: "Mutton Boneless",
-    to: "/collection?category=mutton&type=boneless",
-    icon: Scissors,
     image: CATEGORY_R2_IMAGES.mutton,
   },
   {
