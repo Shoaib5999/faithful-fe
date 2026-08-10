@@ -49,6 +49,8 @@ import {
   type StorefrontReview,
   type StorefrontReviewStats,
 } from "@/services/storefront-product-service";
+import { StoreSEO } from "@/components/storefront/StoreSEO";
+import { SITE_URL, buildCanonical } from "@/constants/seo.constants";
 import { cn } from "@/lib/utils";
 
 function StarRow({ rating, size = "sm" }: { rating: number; size?: "sm" | "md" }) {
@@ -489,6 +491,57 @@ function ProductDetailView({ product }: { product: StoreProductDetail }) {
   const discount =
     mrp > salePrice ? Math.round(((mrp - salePrice) / mrp) * 100) : product.discountPercent;
 
+  const productJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "Product",
+    name: product.name,
+    description: product.description,
+    image: gallery.length > 0 ? gallery : [product.image],
+    sku: variant.sku,
+    brand: { "@type": "Brand", name: "Faithful Meat" },
+    offers: {
+      "@type": "Offer",
+      url: buildCanonical(`/product/${product.slug}`),
+      priceCurrency: "INR",
+      price: salePrice,
+      availability: inStock ? "https://schema.org/InStock" : "https://schema.org/OutOfStock",
+    },
+    // Only real, verified-purchase reviews (Review model) feed this — never a fabricated rating.
+    ...(product.reviewCount > 0
+      ? {
+          aggregateRating: {
+            "@type": "AggregateRating",
+            ratingValue: product.rating,
+            reviewCount: product.reviewCount,
+          },
+        }
+      : {}),
+  };
+
+  const breadcrumbJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      { "@type": "ListItem", position: 1, name: "Home", item: `${SITE_URL}/` },
+      ...(product.categorySlug
+        ? [
+            {
+              "@type": "ListItem",
+              position: 2,
+              name: product.categoryLabel,
+              item: `${SITE_URL}/collection?category=${encodeURIComponent(product.categorySlug)}`,
+            },
+          ]
+        : []),
+      {
+        "@type": "ListItem",
+        position: product.categorySlug ? 3 : 2,
+        name: product.name,
+        item: buildCanonical(`/product/${product.slug}`),
+      },
+    ],
+  };
+
   const buildCartItem = () => ({
     variantId: variant.id,
     name: `${product.name} · ${variant.label}`,
@@ -514,6 +567,13 @@ function ProductDetailView({ product }: { product: StoreProductDetail }) {
 
   return (
     <StorePageShell>
+      <StoreSEO
+        path={`/product/${product.slug}`}
+        title={`Buy ${product.name} Online in Daltonganj, Palamu`}
+        description={`${product.name} — fresh, hygienically packed and hand-cut. Same-day delivery in Daltonganj, Palamu, Jharkhand from Faithful Meat.`}
+        image={product.image}
+        jsonLd={[productJsonLd, breadcrumbJsonLd]}
+      />
       <StorePageContainer className={`${storePageSectionClass} overflow-x-clip pt-4 lg:pt-6`}>
         <nav className="mb-4 hidden font-store-body text-[11px] text-[var(--store-muted)] lg:block">
           <Link to="/" className="hover:text-[var(--store-ink)]">Home</Link>

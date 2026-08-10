@@ -3,6 +3,7 @@ import { Droplets, FlaskConical, MapPin, ShieldCheck } from "lucide-react";
 import { ProcessSection } from "@/components/storefront/ProcessSection";
 import { StorePageShell } from "@/components/storefront/StorePageShell";
 import { StorePageTitle } from "@/components/storefront/StorePageTitle";
+import { StoreSEO } from "@/components/storefront/StoreSEO";
 import { RevealText } from "@/components/storefront/motion/RevealText";
 import { RevealWordTitle } from "@/components/storefront/motion/RevealWordTitle";
 import { useGsapBodyReveal } from "@/components/storefront/motion/useGsapBodyReveal";
@@ -327,6 +328,11 @@ function AboutVisitSection() {
 export default function About() {
   return (
     <StorePageShell>
+      <StoreSEO
+        path="/about"
+        title="About Us"
+        description="Faithful Meat delivers 100% fresh, hygienically packed chicken, mutton, fish and seafood in Daltonganj, Palamu, Jharkhand — hand-cut, no preservatives, same-day."
+      />
       <StorePageTitle title="About Us" eyebrow="Fresh. Hygienic. Delivered." />
       <AboutStoryHero />
       <AboutPillarsSection />

@@ -92,11 +92,18 @@ export const FOOTER_NEWSLETTER = {
 } as const;
 
 export const STORE_LOCATION = {
-  address: "Bairia Choke Bye Pass Road, Bairia, Ballia, Uttar Pradesh – 277001",
-  phoneDisplay: "9065064977",
-  phoneTel: "+919065064977",
+  address: "Bairia Chowk, Daltonganj, Palamu, Jharkhand – 822101",
+  streetAddress: "Bairia Chowk",
+  locality: "Daltonganj",
+  district: "Palamu",
+  region: "Jharkhand",
+  postalCode: "822101",
+  country: "IN",
+  phoneDisplay: "9341897328",
+  phoneTel: "+919341897328",
   hours: "Monday to Sunday · 7am to 10pm",
-  mapsUrl: "https://maps.google.com",
+  mapsUrl:
+    "https://www.google.com/maps/search/?api=1&query=Bairia+Chowk%2C+Daltonganj%2C+Palamu%2C+Jharkhand+822101",
 } as const;
 
 export const STORE_CONTACT_EMAIL = "faithfulmeat@gmail.com" as const;

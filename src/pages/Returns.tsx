@@ -2,6 +2,7 @@ import { Link } from "react-router-dom";
 import { LegalDocument, type LegalSection } from "@/components/editorial/LegalDocument";
 import { StorePageShell } from "@/components/storefront/StorePageShell";
 import { StorePageTitle } from "@/components/storefront/StorePageTitle";
+import { StoreSEO } from "@/components/storefront/StoreSEO";
 import { storeContainerClass, storePageBottomClass } from "@/components/storefront/storefront-ui";
 import { cn } from "@/lib/utils";
 
@@ -49,6 +50,11 @@ const SECTIONS: LegalSection[] = [
 export default function Returns() {
   return (
     <StorePageShell>
+      <StoreSEO
+        path="/returns"
+        title="Return & Refund Policy"
+        description="Faithful Meat's return and refund policy for fresh chicken, mutton, fish and seafood orders delivered in Daltonganj, Palamu, Jharkhand."
+      />
       <StorePageTitle title="Return & Refund Policy" />
       <LegalDocument sections={SECTIONS} className="font-store-body" />
       <div className={cn(storeContainerClass, storePageBottomClass, "max-w-3xl pt-0")}>

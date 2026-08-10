@@ -1,6 +1,7 @@
 import { LegalDocument, type LegalSection } from "@/components/editorial/LegalDocument";
 import { StorePageShell } from "@/components/storefront/StorePageShell";
 import { StorePageTitle } from "@/components/storefront/StorePageTitle";
+import { StoreSEO } from "@/components/storefront/StoreSEO";
 
 const SECTIONS: LegalSection[] = [
   {
@@ -64,6 +65,11 @@ const SECTIONS: LegalSection[] = [
 export default function Terms() {
   return (
     <StorePageShell>
+      <StoreSEO
+        path="/terms"
+        title="Terms & Conditions"
+        description="Terms and conditions for ordering fresh chicken, mutton, fish and seafood from Faithful Meat in Daltonganj, Palamu, Jharkhand."
+      />
       <StorePageTitle title="Terms & Conditions" />
       <LegalDocument sections={SECTIONS} className="font-store-body" />
     </StorePageShell>

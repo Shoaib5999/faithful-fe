@@ -4,6 +4,10 @@
       "source": "/api/(.*)",
       "destination": "https://faithful-be-production.up.railway.app/api/$1"
     },
+    {
+      "source": "/sitemap.xml",
+      "destination": "https://faithful-be-production.up.railway.app/sitemap.xml"
+    },
     { "source": "/(.*)", "destination": "/index.html" }
   ]
 }

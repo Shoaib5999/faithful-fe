@@ -87,7 +87,7 @@ export function StoreFooter() {
             <StoreLogo size="lg" />
             <p className="mt-4 max-w-xs font-store-body text-sm leading-relaxed text-white/60">
               Faithful Meat is your trusted source for 100% fresh, hygienic &amp; premium quality
-              meat and fish.
+              meat and fish — proudly serving Daltonganj, Palamu district and across Jharkhand.
             </p>
           </div>
 

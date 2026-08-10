@@ -4,6 +4,7 @@ import { AlertCircle, Loader2, Package } from "lucide-react";
 import { StoreCancelOrderModal } from "@/components/storefront/StoreCancelOrderModal";
 import { StorePageShell } from "@/components/storefront/StorePageShell";
 import { StorePageTitle } from "@/components/storefront/StorePageTitle";
+import { StoreSEO } from "@/components/storefront/StoreSEO";
 import {
   StoreFormLabel,
   StoreInput,
@@ -139,6 +140,11 @@ export default function TrackOrder() {
 
   return (
     <StorePageShell>
+      <StoreSEO
+        path="/track-order"
+        title="Track Your Order"
+        description="Track your Faithful Meat order — fresh chicken, mutton, fish and seafood delivered same-day in Daltonganj, Palamu, Jharkhand."
+      />
       <StorePageTitle title="Track Order" />
       <StorePageContainer className={cn(storePageSectionClass, "mx-auto max-w-2xl")}>
         <p className="font-store-body text-sm text-[var(--store-muted)]">

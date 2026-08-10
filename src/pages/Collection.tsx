@@ -32,9 +32,11 @@ import {
   COLLECTION_SORT_OPTIONS,
   SHOP_CATEGORIES,
   collectionCategoryToParam,
+  getCategoryDisplayLabel,
   resolveCollectionCategorySlug,
   type CollectionSortId,
 } from "@/constants/storefront.constants";
+import { StoreSEO } from "@/components/storefront/StoreSEO";
 import {
   type CollectionQuickFilterId,
 } from "@/services/storefront-product-service";
@@ -495,8 +497,19 @@ export default function Collection() {
     return count;
   }, [quickFilters, categorySlug, brandSlug, priceMin, priceMax, query, sort]);
 
+  const categoryLabel = categorySlug ? getCategoryDisplayLabel(categorySlug) : null;
+  const seoTitle =
+    categoryLabel && categoryLabel !== "Faithful Meat"
+      ? `Buy Fresh ${categoryLabel} Online in Daltonganj, Palamu`
+      : "Shop Fresh Chicken, Mutton, Fish & Seafood Online in Daltonganj, Palamu";
+  const seoDescription =
+    categoryLabel && categoryLabel !== "Faithful Meat"
+      ? `Order fresh ${categoryLabel.toLowerCase()} online in Daltonganj, Palamu, Jharkhand. Hygienically packed, hand-cut, same-day delivery from Faithful Meat.`
+      : "Browse fresh chicken, mutton, fish, seafood, eggs and combo packs — hygienically packed and delivered same-day in Daltonganj, Palamu, Jharkhand.";
+
   return (
     <StorePageShell>
+      <StoreSEO path="/collection" title={seoTitle} description={seoDescription} />
       <StorePageContainer
         className={cn(storePageSectionClass, "max-w-[1600px] pt-8 md:pt-10")}
       >

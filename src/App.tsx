@@ -3,6 +3,7 @@ import { StoreNavbar } from "@/components/storefront/StoreNavbar";
 import { StorefrontPageFallback } from "@/components/storefront/StorefrontPageFallback";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { lazy, Suspense } from "react";
+import { HelmetProvider } from "react-helmet-async";
 import { BrowserRouter, Route, Routes } from "react-router-dom";
 
 import { PageSkeleton } from "@/components/common/PageSkeleton";
@@ -145,7 +146,8 @@ function CustomerLayout() {
 
 export default function App() {
   return (
-    <QueryClientProvider client={queryClient}>
+    <HelmetProvider>
+      <QueryClientProvider client={queryClient}>
         <AuthProvider>
           <ModalProvider>
             <NotificationProvider>
@@ -280,6 +282,7 @@ export default function App() {
             </NotificationProvider>
           </ModalProvider>
         </AuthProvider>
-    </QueryClientProvider>
+      </QueryClientProvider>
+    </HelmetProvider>
   );
 }

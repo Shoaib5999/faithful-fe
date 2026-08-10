@@ -2,6 +2,7 @@ import { LegalDocument, type LegalSection } from "@/components/editorial/LegalDo
 import { STORE_CONTACT_EMAIL, STORE_LOCATION } from "@/constants/storefront.constants";
 import { StorePageShell } from "@/components/storefront/StorePageShell";
 import { StorePageTitle } from "@/components/storefront/StorePageTitle";
+import { StoreSEO } from "@/components/storefront/StoreSEO";
 
 const SECTIONS: LegalSection[] = [
   {
@@ -67,6 +68,11 @@ const SECTIONS: LegalSection[] = [
 export default function Privacy() {
   return (
     <StorePageShell>
+      <StoreSEO
+        path="/privacy"
+        title="Privacy Policy"
+        description="How Faithful Meat collects, uses and protects your data when you order fresh meat and seafood online in Daltonganj, Palamu, Jharkhand."
+      />
       <StorePageTitle title="Privacy Policy" />
       <LegalDocument sections={SECTIONS} className="font-store-body" />
     </StorePageShell>

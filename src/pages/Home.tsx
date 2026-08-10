@@ -14,6 +14,7 @@ import { StoreFooter } from "@/components/storefront/StoreFooter";
 import { WhatsAppButton } from "@/components/storefront/WhatsAppButton";
 import { WhyChooseSection } from "@/components/storefront/WhyChooseSection";
 import { StoreMotionProvider } from "@/components/storefront/motion/StoreMotionProvider";
+import { StoreSEO } from "@/components/storefront/StoreSEO";
 import { fetchStorefrontSliders } from "@/services/slider-service";
 
 export default function Home() {
@@ -37,6 +38,7 @@ export default function Home() {
 
   return (
     <main className="storefront min-h-screen w-full overflow-x-clip">
+      <StoreSEO path="/" />
       <StoreMotionProvider>
         <HomeHeroBanner slides={heroSlides} />
         <DeliveryInfoStrip />

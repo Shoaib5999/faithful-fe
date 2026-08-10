@@ -16,6 +16,7 @@ import {
 } from "@/components/storefront/ContactSubjectMenu";
 import { StorePageShell } from "@/components/storefront/StorePageShell";
 import { StorePageTitle } from "@/components/storefront/StorePageTitle";
+import { StoreSEO } from "@/components/storefront/StoreSEO";
 import { RevealText } from "@/components/storefront/motion/RevealText";
 import { RevealWordTitle } from "@/components/storefront/motion/RevealWordTitle";
 import { useGsapStaggerReveal } from "@/components/storefront/motion/useGsapStaggerReveal";
@@ -287,6 +288,11 @@ export default function Contact() {
 
   return (
     <StorePageShell>
+      <StoreSEO
+        path="/contact"
+        title="Contact Us"
+        description="Reach Faithful Meat in Daltonganj, Palamu, Jharkhand — call, WhatsApp or visit us at Bairia Chowk for fresh chicken, mutton, fish and seafood delivery."
+      />
       <StorePageTitle title="Contact Us" eyebrow="We are here for you" />
 
       <section className="w-full bg-white py-12 md:py-16">

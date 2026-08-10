@@ -1,0 +1,23 @@
+User-agent: *
+Allow: /
+Disallow: /account
+Disallow: /checkout
+Disallow: /wishlist
+Disallow: /auth/callback
+Disallow: /verify-email
+Disallow: /forgot-password
+Disallow: /reset-password
+Disallow: /dashboard
+Disallow: /products
+Disallow: /orders
+Disallow: /customers
+Disallow: /leads
+Disallow: /inventory
+Disallow: /brands
+Disallow: /staff
+Disallow: /cms
+Disallow: /analytics
+Disallow: /email
+Disallow: /settings
+
+Sitemap: https://www.faithfulmeat.in/sitemap.xml
