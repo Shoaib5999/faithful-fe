@@ -2,11 +2,11 @@
   "rewrites": [
     {
       "source": "/api/(.*)",
-      "destination": "https://faithful-be-production.up.railway.app/api/$1"
+      "destination": "https://api.faithfulmeat.in/api/$1"
     },
     {
       "source": "/sitemap.xml",
-      "destination": "https://faithful-be-production.up.railway.app/sitemap.xml"
+      "destination": "https://api.faithfulmeat.in/sitemap.xml"
     },
     { "source": "/(.*)", "destination": "/index.html" }
   ]
