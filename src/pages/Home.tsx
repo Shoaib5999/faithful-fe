@@ -6,6 +6,7 @@ import { FeaturedCollectionsSection } from "@/components/storefront/FeaturedColl
 import { HomeHeroBanner } from "@/components/storefront/HomeHeroBanner";
 import { InstagramFollowSection } from "@/components/storefront/InstagramFollowSection";
 import { NewArrivalsSection } from "@/components/storefront/NewArrivalsSection";
+import { PromoBannersSection } from "@/components/storefront/PromoBannersSection";
 import { ProcessSection } from "@/components/storefront/ProcessSection";
 import type { HeroSlide } from "@/types/cms.types";
 import { ShopByCategoryGrid } from "@/components/storefront/ShopByCategoryGrid";
@@ -43,6 +44,7 @@ export default function Home() {
         <HomeHeroBanner slides={heroSlides} />
         <DeliveryInfoStrip />
         <ShopByCategoryGrid />
+        <PromoBannersSection />
         <BestsellersSection theme="dark" />
         <SpecialCutsSection />
         <NewArrivalsSection theme="light" />
