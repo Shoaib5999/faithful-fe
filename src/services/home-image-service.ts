@@ -19,3 +19,15 @@ export const updateHomeImage = async (
   const row = await api.put<HomeImageApiRow>(`/cms/home-images/${id}`, input);
   return parseHomeImageRow(row);
 };
+
+export const createHomeImage = async (
+  input: Pick<HomeImage, "section" | "title"> &
+    Partial<Omit<HomeImage, "id" | "slotKey" | "section" | "title" | "sortOrder">>,
+): Promise<HomeImage> => {
+  const row = await api.post<HomeImageApiRow>("/cms/home-images", input);
+  return parseHomeImageRow(row);
+};
+
+export const deleteHomeImage = async (id: string): Promise<void> => {
+  await api.delete(`/cms/home-images/${id}`);
+};
