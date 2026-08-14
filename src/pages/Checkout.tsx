@@ -173,6 +173,10 @@ export default function Checkout() {
     discountDisplay > 0 && checkoutSummary?.coupon?.code ? checkoutSummary.coupon.code : null;
   const shippingDisplay = checkoutSummary ? Number(checkoutSummary.shippingCharge) : 0;
   const isFreeShipping = Boolean(checkoutSummary?.isFreeShippingApplied);
+  const originalShippingFee =
+    checkoutSummary?.shippingSettings?.defaultShippingFee ??
+    checkoutSummary?.shippingMethod?.fee ??
+    0;
   const shippingMethods = checkoutSummary?.shippingMethods ?? [];
   const totalDisplay = checkoutSummary
     ? Number(checkoutSummary.total)
@@ -224,7 +228,18 @@ export default function Checkout() {
   }, [isLoggedIn, items, couponCode, selectedShippingMethod]);
 
   const formatMethodPrice = (method: StoreShippingMethod) => {
-    if (isFreeShipping) return "₹0.00";
+    if (isFreeShipping) {
+      return (
+        <span className="inline-flex items-center gap-1.5">
+          {method.fee > 0 ? (
+            <span className="line-through opacity-60">
+              ₹{method.fee.toLocaleString("en-IN", { minimumFractionDigits: 2 })}
+            </span>
+          ) : null}
+          <span className="font-semibold text-[var(--store-red)]">Free</span>
+        </span>
+      );
+    }
     return `₹${method.fee.toLocaleString("en-IN", {
       minimumFractionDigits: 2,
       maximumFractionDigits: 2,
@@ -961,9 +976,18 @@ export default function Checkout() {
                     <div className="flex justify-between text-[var(--store-muted)]">
                       <span>Shipping</span>
                       <span className="text-[var(--store-ink)]">
-                        {shippingDisplay > 0
-                          ? `₹ ${shippingDisplay.toLocaleString("en-IN")}`
-                          : "Free"}
+                        {shippingDisplay > 0 ? (
+                          `₹ ${shippingDisplay.toLocaleString("en-IN")}`
+                        ) : (
+                          <span className="inline-flex items-center gap-1.5">
+                            {originalShippingFee > 0 ? (
+                              <span className="text-[var(--store-muted)] line-through opacity-60">
+                                ₹ {originalShippingFee.toLocaleString("en-IN")}
+                              </span>
+                            ) : null}
+                            <span className="font-semibold text-[var(--store-red)]">Free</span>
+                          </span>
+                        )}
                       </span>
                     </div>
                     <div className="flex justify-between border-t border-black/10 pt-3 text-base font-semibold text-[var(--store-ink)]">
