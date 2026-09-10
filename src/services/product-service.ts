@@ -141,6 +141,7 @@ export const addProductVariant = async (
         : null,
     stockQty: variant.stockQty,
     sku: variant.sku.trim().toUpperCase(),
+    unitId: variant.unitId || null,
   });
 };
 

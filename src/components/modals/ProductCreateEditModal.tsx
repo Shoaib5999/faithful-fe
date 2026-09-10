@@ -55,7 +55,7 @@ import type {
   ProductStatus,
   ProductVariant,
 } from "@/types/commerce.types";
-import type { FormErrors } from "@/types/master.types";
+import type { FormErrors, Unit } from "@/types/master.types";
 import { Loader2, Plus, Trash2, Upload, X } from "lucide-react";
 
 const MAX_PRODUCT_IMAGE_BYTES = 10 * 1024 * 1024;
@@ -64,6 +64,15 @@ const PRODUCT_IMAGE_ACCEPT = "image/*";
 
 const formatFileSizeMb = (bytes: number): string =>
   `${(bytes / (1024 * 1024)).toFixed(1)}MB`;
+
+const resolveDefaultUnitId = (units: Unit[]): string | null => {
+  const active = units.filter((u) => u.isActive);
+  const grams = active.find((u) => u.symbol.trim().toLowerCase() === "g");
+  if (grams) return grams.id;
+  const weightUnit = active.find((u) => u.type === "weight");
+  if (weightUnit) return weightUnit.id;
+  return active[0]?.id ?? null;
+};
 
 type VariantDraft = {
   id: string;
@@ -74,6 +83,7 @@ type VariantDraft = {
   stockQty: number;
   sku: string;
   skuTouched?: boolean;
+  unitId: string | null;
 };
 
 type PendingImage = {
@@ -82,7 +92,11 @@ type PendingImage = {
   previewUrl: string;
 };
 
-const emptyVariant = (productName = "", weightGrams = 250): VariantDraft => ({
+const emptyVariant = (
+  productName = "",
+  weightGrams = 250,
+  defaultUnitId: string | null = null,
+): VariantDraft => ({
   id: generateId(),
   isNew: true,
   weightGrams,
@@ -91,6 +105,7 @@ const emptyVariant = (productName = "", weightGrams = 250): VariantDraft => ({
   stockQty: 0,
   sku: productName.trim() ? generateVariantSku(productName, weightGrams) : "",
   skuTouched: false,
+  unitId: defaultUnitId,
 });
 
 const mapExistingVariants = (variants: ProductVariant[]): VariantDraft[] =>
@@ -105,13 +120,14 @@ const mapExistingVariants = (variants: ProductVariant[]): VariantDraft[] =>
       stockQty: v.stockQty,
       sku: v.sku,
       skuTouched: true,
+      unitId: v.unitId ?? null,
     }));
 
 export const ProductCreateEditModal: React.FC = () => {
   const { closeModal, payload } = useModal();
   const { notify } = useNotification();
   const { handleCreate, isMutating, reloadProducts } = useProduct();
-  const { brands, categories, taxClasses } = useMasterData();
+  const { brands, categories, taxClasses, units } = useMasterData();
 
   const existing = payload.product as Product | undefined;
   const isEdit = Boolean(existing);
@@ -140,7 +156,7 @@ export const ProductCreateEditModal: React.FC = () => {
   const [variants, setVariants] = useState<VariantDraft[]>(
     isEdit && existing?.variants?.length
       ? mapExistingVariants(existing.variants)
-      : [emptyVariant()],
+      : [emptyVariant("", 250, resolveDefaultUnitId(units))],
   );
   const [existingImages, setExistingImages] = useState<ProductImage[]>(
     existing?.images ?? [],
@@ -183,6 +199,8 @@ export const ProductCreateEditModal: React.FC = () => {
     [taxClasses],
   );
 
+  const activeUnits = useMemo(() => units.filter((u) => u.isActive), [units]);
+
   const shouldAutoGenerateSku = (variant: VariantDraft): boolean => {
     if (variant.skuTouched) return false;
     if (!isEdit) return true;
@@ -222,14 +240,15 @@ export const ProductCreateEditModal: React.FC = () => {
   const addVariant = () => {
     setVariants((prev) => {
       const nextSize = suggestNextVariantSize(prev.map((v) => v.weightGrams));
-      return [...prev, emptyVariant(name, nextSize)];
+      const inheritedUnitId = prev[prev.length - 1]?.unitId ?? resolveDefaultUnitId(units);
+      return [...prev, emptyVariant(name, nextSize, inheritedUnitId)];
     });
   };
 
   const updateVariant = (
     id: string,
     field: keyof Omit<VariantDraft, "id" | "skuTouched">,
-    val: number | string,
+    val: number | string | null,
   ) => {
     setVariants((prev) =>
       prev.map((v) => {
@@ -420,6 +439,7 @@ export const ProductCreateEditModal: React.FC = () => {
               v.compareAtPrice > v.price ? v.compareAtPrice : null,
             stockQty: v.stockQty,
             sku: v.sku,
+            unitId: v.unitId,
           };
           if (v.isNew) {
             await addProductVariant(existing.id, payload);
@@ -461,6 +481,7 @@ export const ProductCreateEditModal: React.FC = () => {
               v.compareAtPrice > v.price ? v.compareAtPrice : null,
             stockQty: v.stockQty,
             sku: v.sku,
+            unitId: v.unitId,
           })),
         };
         await handleCreate(createInput, imageFiles);
@@ -664,9 +685,10 @@ export const ProductCreateEditModal: React.FC = () => {
                 <InlineAlert type="error" message={errors.variants} />
               )}
 
-              <div className="hidden gap-2 px-1 text-xs text-muted-foreground sm:grid sm:grid-cols-[1fr_72px_96px_96px_72px_36px]">
+              <div className="hidden gap-2 px-1 text-xs text-muted-foreground sm:grid sm:grid-cols-[1fr_72px_88px_96px_96px_72px_36px]">
                 <span>SKU</span>
                 <span>Weight (g)</span>
+                <span>Unit</span>
                 <span>Price (₹)</span>
                 <span>Compare (₹)</span>
                 <span>Stock</span>
@@ -678,7 +700,7 @@ export const ProductCreateEditModal: React.FC = () => {
                 return (
                 <div
                   key={v.id}
-                  className="grid gap-2 rounded-lg border border-border p-3 sm:grid-cols-[1fr_72px_96px_96px_72px_36px] sm:border-0 sm:p-0"
+                  className="grid gap-2 rounded-lg border border-border p-3 sm:grid-cols-[1fr_72px_88px_96px_96px_72px_36px] sm:border-0 sm:p-0"
                 >
                   <div className="flex flex-col gap-1 sm:col-span-1">
                     <Input
@@ -706,6 +728,24 @@ export const ProductCreateEditModal: React.FC = () => {
                     onChange={(val) => updateVariant(v.id, "weightGrams", val)}
                     min={1}
                   />
+                  <Select
+                    value={v.unitId ?? "__none"}
+                    onValueChange={(val) =>
+                      updateVariant(v.id, "unitId", val === "__none" ? null : val)
+                    }
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Unit" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="__none">—</SelectItem>
+                      {activeUnits.map((u) => (
+                        <SelectItem key={u.id} value={u.id}>
+                          {u.symbol}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                   <NumberInput
                     value={v.price}
                     onChange={(val) => updateVariant(v.id, "price", val)}

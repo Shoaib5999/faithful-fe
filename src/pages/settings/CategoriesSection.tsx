@@ -80,6 +80,10 @@ export const CategoriesSection: React.FC = () => {
       ), sortable: true, sortValue: (r) => getCategoryDisplayName(r.category),
     },
     { key: "slug", header: "Slug", render: (r) => <span className=" text-muted-foreground">{r.category.slug}</span> },
+    {
+      key: "sortOrder", header: "Order", render: (r) => <span className="text-muted-foreground">{r.category.sortOrder}</span>,
+      sortable: true, sortValue: (r) => r.category.sortOrder,
+    },
     { key: "status", header: "Status", render: (r) => <StatusBadge status={r.category.isActive ? "Active" : "Inactive"} colorMap={ACTIVE_COLOR} /> },
     {
       key: "actions", header: "", hideable: false, render: (r) => (

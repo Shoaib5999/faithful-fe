@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { SearchSelector } from "@/components/common/SearchSelector";
+import { NumberInput } from "@/components/common/NumberInput";
 import { useModal } from "@/hooks/useModal";
 import { useCategory } from "@/hooks/useCategory";
 import { useMasterData } from "@/hooks/useMasterData";
@@ -28,6 +29,7 @@ export const CategoryCreateEditModal: React.FC = () => {
   const [slugManual, setSlugManual] = useState(false);
   const [parentId, setParentId] = useState<string | null>(existing?.parentId ?? null);
   const [isActive, setIsActive] = useState(existing?.isActive ?? true);
+  const [sortOrder, setSortOrder] = useState<number>(existing?.sortOrder ?? categories.length);
   const [errors, setErrors] = useState<FormErrors>({});
 
   useEffect(() => {
@@ -50,7 +52,7 @@ export const CategoryCreateEditModal: React.FC = () => {
     const e = validate();
     setErrors(e);
     if (Object.keys(e).length > 0) return;
-    const data = { name, slug: slug || generateSlug(name), parentId, isActive, sortOrder: existing?.sortOrder ?? categories.length };
+    const data = { name, slug: slug || generateSlug(name), parentId, isActive, sortOrder };
     if (isEdit && existing) {
       await handleUpdate(existing.id, data);
     } else {
@@ -83,6 +85,13 @@ export const CategoryCreateEditModal: React.FC = () => {
             placeholder="category-slug"
             className=" text-muted-foreground"
           />
+        </div>
+        <div className="flex flex-col gap-1.5">
+          <Label>Display order</Label>
+          <NumberInput value={sortOrder} onChange={setSortOrder} min={0} step={1} />
+          <p className="text-xs text-muted-foreground">
+            Controls the order categories appear in menus and listings. Lower numbers appear first.
+          </p>
         </div>
         <div className="flex items-center gap-2">
           <Switch checked={isActive} onCheckedChange={setIsActive} />

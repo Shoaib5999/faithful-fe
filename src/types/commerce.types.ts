@@ -20,6 +20,7 @@ export interface ProductVariant {
   compareAtPrice?: number | null;
   stockQty: number;
   isActive: boolean;
+  unitId?: string | null;
 }
 
 export type ProductAttributeValue = {

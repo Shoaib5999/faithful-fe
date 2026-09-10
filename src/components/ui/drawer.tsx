@@ -3,8 +3,22 @@ import { Drawer as DrawerPrimitive } from "vaul";
 
 import { cn } from "@/lib/utils";
 
-const Drawer = ({ shouldScaleBackground = true, ...props }: React.ComponentProps<typeof DrawerPrimitive.Root>) => (
-  <DrawerPrimitive.Root shouldScaleBackground={shouldScaleBackground} {...props} />
+const Drawer = ({
+  shouldScaleBackground = true,
+  // vaul repositions the drawer using the visualViewport API when an input inside it
+  // is focused, to keep the input above the on-screen keyboard. On mobile Safari/Chrome
+  // this fights with vaul's own drag-to-dismiss tracking — the resize event it gets from
+  // the keyboard opening is read as a swipe, so the sheet jumps and a small pull-down
+  // gesture closes it outright. Disabling this lets the browser's native focus-scroll
+  // handle the keyboard instead, which does not have that conflict.
+  repositionInputs = false,
+  ...props
+}: React.ComponentProps<typeof DrawerPrimitive.Root>) => (
+  <DrawerPrimitive.Root
+    shouldScaleBackground={shouldScaleBackground}
+    repositionInputs={repositionInputs}
+    {...props}
+  />
 );
 Drawer.displayName = "Drawer";
 

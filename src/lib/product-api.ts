@@ -77,6 +77,7 @@ export type ProductVariantInput = {
   compareAtPrice?: number | null;
   stockQty: number;
   sku: string;
+  unitId?: string | null;
 };
 
 export type ProductCreateInput = {
@@ -193,6 +194,7 @@ const mapVariant = (raw: Record<string, unknown>): ProductVariant => {
       compareAtPrice != null && compareAtPrice > price ? compareAtPrice : null,
     stockQty: toNumber(raw.stockQty),
     isActive: Boolean(raw.isActive ?? true),
+    unitId: raw.unitId != null ? String(raw.unitId) : null,
   };
 };
 
@@ -274,6 +276,7 @@ export const buildCreatePayload = (input: ProductCreateInput) => ({
     compareAtPrice: v.compareAtPrice && v.compareAtPrice > v.price ? v.compareAtPrice : null,
     stockQty: v.stockQty,
     sku: v.sku.trim().toUpperCase(),
+    unitId: v.unitId || null,
   })),
 });
 
