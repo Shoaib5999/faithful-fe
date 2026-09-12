@@ -2,7 +2,7 @@ import { format } from "date-fns";
 import { resolveProductImage } from "@/constants/product-image.constants";
 import { COD_PAYMENT_CODE } from "@/constants/payment.constants";
 import { getCategoryDisplayLabel } from "@/constants/storefront.constants";
-import { formatWeightLabel } from "@/lib/store-product-detail";
+import { formatVariantQuantityLabel } from "@/lib/store-product-detail";
 import type {
   StoreOrderApi,
   StoreOrderItemView,
@@ -138,6 +138,7 @@ const mapOrderItems = (order: StoreOrderApi): StoreOrderItemView[] =>
     const productName = item.variant?.product?.name?.trim() || "Product";
     const productSlug = item.variant?.product?.slug?.trim() ?? "";
     const weightGrams = item.variant?.weightGrams;
+    const unitSymbol = item.variant?.unit?.symbol;
     const imageUrl = resolveProductImage(
       item.variant?.product?.images?.find((image) => image?.url)?.url,
     );
@@ -147,7 +148,9 @@ const mapOrderItems = (order: StoreOrderApi): StoreOrderItemView[] =>
       id: item.id,
       name: productName,
       productSlug,
-      variantLabel: weightGrams ? formatWeightLabel(weightGrams) : (item.variant?.sku ?? undefined),
+      variantLabel: weightGrams
+        ? formatVariantQuantityLabel(weightGrams, unitSymbol)
+        : (item.variant?.sku ?? undefined),
       qty,
       unitPrice,
       lineTotal,

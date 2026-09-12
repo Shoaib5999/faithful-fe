@@ -13,6 +13,8 @@ export interface ProductVariant {
     isActive: boolean;
     createdAt: string;
     updatedAt: string;
+    unitId?: string | null;
+    unit?: { symbol: string } | null;
 }
 
 export interface ProductImage {

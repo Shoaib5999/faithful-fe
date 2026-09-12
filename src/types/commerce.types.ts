@@ -21,6 +21,7 @@ export interface ProductVariant {
   stockQty: number;
   isActive: boolean;
   unitId?: string | null;
+  unit?: { symbol: string } | null;
 }
 
 export type ProductAttributeValue = {

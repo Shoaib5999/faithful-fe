@@ -1,6 +1,6 @@
 import { api } from "@/services/api";
 import { resolveProductImage } from "@/constants/product-image.constants";
-import { formatWeightLabel } from "@/lib/store-product-detail";
+import { formatVariantQuantityLabel } from "@/lib/store-product-detail";
 
 export type ApiCartVariantProductImage = { url?: string | null; isPrimary?: boolean };
 export type ApiCartVariantProduct = {
@@ -15,6 +15,7 @@ export type ApiCartVariant = {
   price: string | number;
   stockQty: number;
   weightGrams: number;
+  unit?: { symbol: string } | null;
   product: ApiCartVariantProduct;
 };
 export type ApiCartItem = {
@@ -77,7 +78,7 @@ export function mapApiCartItemsToLines(items: ApiCartItem[]) {
       image: img,
       price: formatInr(price),
       priceNumber: price,
-      notes: formatWeightLabel(v.weightGrams),
+      notes: formatVariantQuantityLabel(v.weightGrams, v.unit?.symbol),
       categorySlug: v.product.category?.slug ?? undefined,
       stockQty: v.stockQty,
       qty: item.quantity,

@@ -2,7 +2,7 @@ import type { InventoryRecord, InventoryAdjustment, Product } from "@/types/comm
 import { generateId } from "@/lib/formatters";
 import { APP_CONFIG } from "@/constants/app.constants";
 import { fetchProducts } from "@/services/product-service";
-import { formatWeightLabel } from "@/lib/store-product-detail";
+import { formatVariantQuantityLabel } from "@/lib/store-product-detail";
 import { api } from "@/services/api";
 
 const THRESHOLDS_LS = "faithfulmeat_inv_thresholds_v1";
@@ -63,7 +63,7 @@ export function buildInventoryRecordsFromProducts(products: Product[]): Inventor
         warehouseLocation: "",
         lastUpdatedAt: p.updatedAt,
         productName: p.name,
-        variantLabel: `${formatWeightLabel(v.weightGrams)} · ${v.sku}`,
+        variantLabel: `${formatVariantQuantityLabel(v.weightGrams, v.unit?.symbol)} · ${v.sku}`,
         productSku: p.sku,
       });
     }
@@ -100,7 +100,7 @@ export const adjustInventory = async (
     if (v) {
       productId = p.id;
       productName = p.name;
-      variantLabel = `${formatWeightLabel(v.weightGrams)} · ${v.sku}`;
+      variantLabel = `${formatVariantQuantityLabel(v.weightGrams, v.unit?.symbol)} · ${v.sku}`;
       previousQuantity = v.stockQty;
       break;
     }

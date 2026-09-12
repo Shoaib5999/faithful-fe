@@ -1,6 +1,6 @@
 import type { Address, Customer, Order, OrderItem, ShipmentTracking } from "@/types/commerce.types";
 import { getCategoryDisplayLabel } from "@/constants/storefront.constants";
-import { formatWeightLabel } from "@/lib/store-product-detail";
+import { formatVariantQuantityLabel } from "@/lib/store-product-detail";
 import { api } from "@/services/api";
 
 export const ORDERS_QK = ["orders"] as const;
@@ -30,6 +30,7 @@ type ApiVariant = {
   productId: string;
   sku: string;
   weightGrams: number;
+  unit?: { symbol: string } | null;
   product: {
     id: string;
     name: string;
@@ -153,7 +154,7 @@ const mapItem = (row: ApiOrderItem): OrderItem => {
     productName: p?.name ?? "Unknown product",
     categorySlug,
     lineLabel: getCategoryDisplayLabel(categorySlug ?? ""),
-    variantName: v ? formatWeightLabel(v.weightGrams) : null,
+    variantName: v ? formatVariantQuantityLabel(v.weightGrams, v.unit?.symbol) : null,
     sku: v?.sku ?? p?.sku ?? "",
     imageUrl,
     quantity: qty,

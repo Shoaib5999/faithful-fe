@@ -63,6 +63,23 @@ export const formatWeightLabel = (weightGrams: number): string => {
   return `${g}g`;
 };
 
+/**
+ * Formats a variant's quantity for display. When the variant has an explicit
+ * unit set (e.g. "pc", "ml"), that unit wins verbatim — the quantity isn't a
+ * weight in grams at all in that case. Falls back to the g/kg weight format
+ * for variants created before units existed.
+ */
+export const formatVariantQuantityLabel = (
+  quantity: number,
+  unitSymbol?: string | null,
+): string => {
+  if (unitSymbol) {
+    const q = Number.isInteger(quantity) ? quantity : quantity.toFixed(2);
+    return `${q}${unitSymbol}`;
+  }
+  return formatWeightLabel(quantity);
+};
+
 const titleizeSlug = (slug: string): string =>
   slug
     .split(/[-_]+/)
@@ -94,7 +111,7 @@ export const mapApiToStoreProductDetail = (
 
       return {
         id: v.id,
-        label: formatWeightLabel(v.weightGrams),
+        label: formatVariantQuantityLabel(v.weightGrams, v.unit?.symbol),
         weightGrams: v.weightGrams,
         price,
         compareAtPrice,

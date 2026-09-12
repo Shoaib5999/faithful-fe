@@ -6,6 +6,7 @@ export type StoreOrderApiItem = {
   priceAtPurchase: string | number;
   variant?: {
     weightGrams?: number | null;
+    unit?: { symbol: string } | null;
     sku?: string | null;
     product?: {
       name?: string;
