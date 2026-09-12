@@ -366,11 +366,11 @@ export const ProductCreateEditModal: React.FC = () => {
         (v.compareAtPrice > 0 && v.compareAtPrice <= v.price),
     );
     if (invalid) {
-      return "Each variant needs SKU, weight (g), price > 0, and compare price must be higher than price when set";
+      return "Each variant needs SKU, a quantity greater than 0, price > 0, and compare price must be higher than price when set";
     }
-    const sizes = variants.map((v) => v.weightGrams);
+    const sizes = variants.map((v) => `${v.weightGrams}::${v.unitId ?? "none"}`);
     if (new Set(sizes).size !== sizes.length) {
-      return "Each variant must have a unique weight (g). Duplicate weights produce the same SKU.";
+      return "Two variants have the same quantity and unit — give them different sizes or units.";
     }
     const skus = variants.map((v) => v.sku.trim().toUpperCase());
     if (new Set(skus).size !== skus.length) {
@@ -687,7 +687,7 @@ export const ProductCreateEditModal: React.FC = () => {
 
               <div className="hidden gap-2 px-1 text-xs text-muted-foreground sm:grid sm:grid-cols-[1fr_72px_88px_96px_96px_72px_36px]">
                 <span>SKU</span>
-                <span>Weight (g)</span>
+                <span>Quantity</span>
                 <span>Unit</span>
                 <span>Price (₹)</span>
                 <span>Compare (₹)</span>
@@ -790,7 +790,7 @@ export const ProductCreateEditModal: React.FC = () => {
 
               <InlineAlert
                 type="info"
-                message="SKUs auto-generate from product name and weight (e.g. FTM-CHICKENCURRY-1000G). Use Custom SKU to override. Compare price powers the discount badge on the storefront."
+                message="SKUs auto-generate from product name and quantity, always ending in G regardless of unit (e.g. FTM-CHICKENCURRY-2G for a 2-piece variant). Use Custom SKU to override. Compare price powers the discount badge on the storefront."
               />
             </div>
           </TabsContent>
