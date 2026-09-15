@@ -107,7 +107,7 @@ function CustomerLayout() {
     <StoreAuthProvider>
       <CartProvider>
         <StoreAuthUiProvider>
-          <div className="storefront min-h-screen bg-white text-[var(--store-ink)]">
+          <div className="storefront store-has-bottom-nav min-h-screen bg-white text-[var(--store-ink)]">
             <StoreNavbar />
             <StoreLenisScope>
               <ErrorBoundary fallback={<StorefrontErrorFallback />}>

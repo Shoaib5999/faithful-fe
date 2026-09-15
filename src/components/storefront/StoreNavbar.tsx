@@ -7,13 +7,15 @@ import { StoreSearchSuggestions } from "@/components/storefront/StoreSearchSugge
 import { StoreNavMegaMenu } from "@/components/storefront/StoreNavMegaMenu";
 import { StoreCartDrawer } from "@/components/storefront/StoreCartDrawer";
 import { StoreMobileMenu } from "@/components/storefront/StoreMobileMenu";
+import { StoreBottomNav } from "@/components/storefront/StoreBottomNav";
+import { StoreCategorySheet } from "@/components/storefront/StoreCategorySheet";
 import { useStoreAuth } from "@/context/StoreAuthContext";
 import { useStoreAuthUi } from "@/context/StoreAuthUiContext";
 import { MAIN_NAV_LINKS } from "@/constants/storefront.constants";
 import { useCart } from "@/context/CartContext";
 import { cn } from "@/lib/utils";
 
-type DrawerView = "none" | "menu" | "cart";
+type DrawerView = "none" | "menu" | "cart" | "categories";
 
 // ─── Shared ──────────────────────────────────────────────────────────────────
 
@@ -62,6 +64,14 @@ function useNavbarScrollHide(suppress: boolean) {
       window.removeEventListener("scroll", onScroll);
       if (idleTimerRef.current) clearTimeout(idleTimerRef.current);
     };
+  }, [suppress]);
+
+  // A panel can be opened from the bottom nav while the top bar is mid-hide;
+  // reveal it immediately instead of waiting for the next scroll tick.
+  useEffect(() => {
+    if (!suppress) return;
+    if (idleTimerRef.current) clearTimeout(idleTimerRef.current);
+    setNavVisible(true);
   }, [suppress]);
 
   return navVisible;
@@ -582,6 +592,14 @@ export function StoreNavbar() {
 
   const closeSearch = useCallback(() => setSearchOpen(false), []);
 
+  const toggleSearch = useCallback(() => {
+    if (searchOpen) {
+      closeSearch();
+      return;
+    }
+    openSearch();
+  }, [searchOpen, closeSearch, openSearch]);
+
   const handleSearchChange = useCallback((q: string) => setSearchQuery(q), []);
 
   const handleSearchSubmit = useCallback(
@@ -598,7 +616,7 @@ export function StoreNavbar() {
   );
 
   // ── Drawer ──────────────────────────────────────────────────────────────────
-  const toggleDrawer = useCallback((view: "menu" | "cart") => {
+  const toggleDrawer = useCallback((view: Exclude<DrawerView, "none">) => {
     setSearchOpen(false);
     setIsShopOpen(false);
     setDrawerView((cur) => (cur === view ? "none" : view));
@@ -617,6 +635,9 @@ export function StoreNavbar() {
 
   const handleProfileClick = useCallback(() => {
     if (isLoggedIn) {
+      setDrawerView("none");
+      setSearchOpen(false);
+      setIsShopOpen(false);
       navigate("/account");
       return;
     }
@@ -785,6 +806,23 @@ export function StoreNavbar() {
         onSuggestionViewAll={handleSuggestionViewAll}
       />
 
+      {/* Mobile bottom tab bar */}
+      <StoreBottomNav
+        cartCount={cartCount}
+        isLoggedIn={isLoggedIn}
+        homeActive={isActive("/")}
+        shopActive={isActive("/collection") || isActive("/product")}
+        accountActive={isActive("/account")}
+        categoriesOpen={drawerView === "categories"}
+        cartOpen={drawerView === "cart"}
+        searchOpen={searchOpen}
+        onHomeClick={closeAll}
+        onCategoriesToggle={() => toggleDrawer("categories")}
+        onSearchToggle={toggleSearch}
+        onCartToggle={() => toggleDrawer("cart")}
+        onProfileClick={handleProfileClick}
+      />
+
       {/* Backdrop */}
       {(isDrawerOpen || searchOpen) && (
         <button
@@ -807,6 +845,9 @@ export function StoreNavbar() {
         onOpenAuth={openAuthModal}
         onLogout={logout}
       />
+
+      {/* Shop categories sheet (bottom nav) */}
+      <StoreCategorySheet open={drawerView === "categories"} onClose={closeAll} />
 
       {/* Cart drawer */}
       <StoreCartDrawer

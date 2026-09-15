@@ -644,3 +644,39 @@
   padding-block: 0.18em;
   will-change: transform;
 }
+
+/* ============================================================
+   Storefront mobile bottom navigation
+   Row is 3.5rem tall; `.store-has-bottom-nav` must reserve the
+   same height on the page wrapper. Keep the two in sync.
+   ============================================================ */
+
+/* Clears the iOS home indicator (0 unless the viewport opts into safe areas). */
+.store-bottom-nav-safe {
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+/* Bottom sheets that sit flush against the viewport bottom. */
+.store-sheet-safe-pb {
+  padding-bottom: calc(0.875rem + env(safe-area-inset-bottom, 0px));
+}
+
+/* Storefront pages reserve room for the fixed bottom nav below `lg`. */
+.store-has-bottom-nav {
+  padding-bottom: calc(3.5rem + env(safe-area-inset-bottom, 0px));
+}
+
+/* Floating action buttons (WhatsApp) ride above the bottom nav. */
+.store-fab-above-bottom-nav {
+  bottom: calc(4.75rem + env(safe-area-inset-bottom, 0px));
+}
+
+@media (min-width: 1024px) {
+  .store-has-bottom-nav {
+    padding-bottom: 0;
+  }
+
+  .store-fab-above-bottom-nav {
+    bottom: 2.25rem;
+  }
+}
