@@ -2,11 +2,11 @@
   "rewrites": [
     {
       "source": "/api/(.*)",
-      "destination": "https://170-187-250-96.ip.linodeusercontent.com/api/$1"
+      "destination": "https://api.faithfulmeat.in/api/$1"
     },
     {
       "source": "/sitemap.xml",
-      "destination": "https://170-187-250-96.ip.linodeusercontent.com/sitemap.xml"
+      "destination": "https://api.faithfulmeat.in/sitemap.xml"
     },
     { "source": "/(.*)", "destination": "/index.html" }
   ]
