@@ -1,5 +1,6 @@
 import { StoreLenisScope } from "@/components/storefront/motion/StoreLenisScope";
 import { StoreNavbar } from "@/components/storefront/StoreNavbar";
+import { ShoppingAssistant } from "@/components/storefront/ShoppingAssistant";
 import { StorefrontPageFallback } from "@/components/storefront/StorefrontPageFallback";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { lazy, Suspense } from "react";
@@ -137,6 +138,7 @@ function CustomerLayout() {
                 </Routes>
               </ErrorBoundary>
             </StoreLenisScope>
+            <ShoppingAssistant />
           </div>
         </StoreAuthUiProvider>
       </CartProvider>
