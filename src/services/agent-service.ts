@@ -23,11 +23,34 @@ export interface AgentClientAction {
   stockQty?: number;
 }
 
+/** One size/weight option of a product, exactly as the catalogue has it. */
+export interface AgentProductVariant {
+  variantId: string;
+  label: string;
+  price: number;
+  inStock: boolean;
+}
+
+/**
+ * A real catalogue result the agent looked up this turn, for rendering as an
+ * actual tappable card — not text the model composed, so it can never show a
+ * product, size or price the agent didn't also ground its own reply in.
+ */
+export interface AgentProductCard {
+  slug: string;
+  name: string;
+  image: string | null;
+  category: string | null;
+  priceFrom: number | null;
+  variants: AgentProductVariant[];
+}
+
 export interface AgentReply {
   sessionId: string;
   reply: string;
   toolsUsed: string[];
   clientActions: AgentClientAction[];
+  products: AgentProductCard[];
 }
 
 export interface AgentStatus {
@@ -35,7 +58,33 @@ export interface AgentStatus {
   maxMessageLength: number;
 }
 
+/**
+ * Reply language. 'hi' is Hindi in Devanagari script; 'hinglish' is Hindi
+ * spoken/written with English letters, which is how a lot of customers
+ * actually text — kept distinct because they need different reply scripts
+ * even though the customer's spoken language is the same.
+ */
+export type AgentLanguage = "en" | "hi" | "hinglish";
+
 const SESSION_STORAGE_KEY = "faithfulmeat.agent.session";
+const LANGUAGE_STORAGE_KEY = "faithfulmeat.agent.language";
+
+export const readAgentLanguage = (): AgentLanguage | null => {
+  try {
+    const value = sessionStorage.getItem(LANGUAGE_STORAGE_KEY);
+    return value === "en" || value === "hi" || value === "hinglish" ? value : null;
+  } catch {
+    return null;
+  }
+};
+
+export const writeAgentLanguage = (language: AgentLanguage): void => {
+  try {
+    sessionStorage.setItem(LANGUAGE_STORAGE_KEY, language);
+  } catch {
+    /* non-fatal */
+  }
+};
 
 export const readSessionId = (): string | null => {
   try {
@@ -69,13 +118,15 @@ export const fetchAgentStatus = async (): Promise<AgentStatus> =>
 export const sendAgentMessage = async (
   message: string,
   sessionId: string | null,
+  language: AgentLanguage,
 ): Promise<AgentReply> => {
   const reply = await api.post<AgentReply>("/agent/chat", {
     message,
+    language,
     ...(sessionId ? { sessionId } : {}),
   });
   if (reply?.sessionId) writeSessionId(reply.sessionId);
-  return reply;
+  return { ...reply, products: reply?.products ?? [] };
 };
 
 export interface AgentTranscript {
@@ -110,9 +161,11 @@ export const isVoiceSupported = (): boolean =>
 export const transcribeAudio = async (
   blob: Blob,
   sessionId: string | null,
+  language: AgentLanguage,
 ): Promise<AgentTranscript> => {
   const form = new FormData();
   form.append("audio", blob, "speech");
+  form.append("language", language);
   if (sessionId) form.append("sessionId", sessionId);
 
   const result = await api.post<AgentTranscript>("/agent/transcribe", form);

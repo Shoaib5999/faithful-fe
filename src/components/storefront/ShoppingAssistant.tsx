@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
+  Languages,
   Loader2,
   MessageCircle,
   Mic,
@@ -16,14 +17,20 @@ import { cn } from "@/lib/utils";
 import {
   fetchAgentStatus,
   isVoiceSupported,
+  readAgentLanguage,
   readSessionId,
   resetAgentConversation,
   sendAgentMessage,
   transcribeAudio,
+  writeAgentLanguage,
   type AgentClientAction,
+  type AgentLanguage,
+  type AgentProductCard,
 } from "@/services/agent-service";
 import { useSpeech } from "@/hooks/useSpeech";
 import { useVoiceRecorder } from "@/hooks/useVoiceRecorder";
+import { AgentMessageText } from "@/components/storefront/AgentMessageText";
+import { AgentProductCards } from "@/components/storefront/AgentProductCards";
 
 /**
  * Floating shopping assistant.
@@ -39,11 +46,34 @@ interface ChatMessage {
   text: string;
   /** Guest cart additions the agent proposed but could not perform itself. */
   actions?: AgentClientAction[];
+  /** Real catalogue results from this turn, rendered as tappable cards. */
+  products?: AgentProductCard[];
   failed?: boolean;
 }
 
-const GREETING =
-  "Hi! I can help you find cuts, check prices, or track an order. What are you after?";
+const GREETINGS: Record<AgentLanguage, string> = {
+  en: "Hi! I can help you find cuts, check prices, or track an order. What are you after?",
+  hi: "नमस्ते! मैं आपको सही कट ढूँढने, दाम देखने या ऑर्डर ट्रैक करने में मदद कर सकता हूँ। आपको क्या चाहिए?",
+  hinglish:
+    "Hi! Main aapko sahi cut dhoondhne, price dekhne ya order track karne mein madad kar sakta hoon. Aapko kya chahiye?",
+};
+
+/**
+ * Shown once, right after picking a non-English language, only when this
+ * device/browser genuinely has no Hindi voice installed. Silently falling
+ * back to an English voice would mispronounce every reply; saying nothing
+ * would leave the customer wondering why voice replies never came.
+ */
+const NO_VOICE_NOTES: Partial<Record<AgentLanguage, string>> = {
+  hi: "आपके डिवाइस पर हिंदी आवाज़ उपलब्ध नहीं है, इसलिए जवाब सिर्फ़ लिखित में मिलेंगे।",
+  hinglish: "Aapke device par Hindi awaaz available nahi hai, isliye replies sirf text mein aayenge.",
+};
+
+const LANGUAGE_OPTIONS: { value: AgentLanguage; label: string; sub: string }[] = [
+  { value: "en", label: "English", sub: "Chat in English" },
+  { value: "hi", label: "हिंदी", sub: "हिंदी में बात करें" },
+  { value: "hinglish", label: "Hinglish", sub: "Roman script mein Hindi" },
+];
 
 const newId = () => Math.random().toString(36).slice(2, 10);
 
@@ -52,12 +82,14 @@ export function ShoppingAssistant() {
 
   const [available, setAvailable] = useState(false);
   const [open, setOpen] = useState(false);
+  const [language, setLanguage] = useState<AgentLanguage | null>(() => readAgentLanguage());
   const [input, setInput] = useState("");
   const [sending, setSending] = useState(false);
   const [applyingAction, setApplyingAction] = useState<string | null>(null);
-  const [messages, setMessages] = useState<ChatMessage[]>([
-    { id: "greeting", role: "assistant", text: GREETING },
-  ]);
+  const [messages, setMessages] = useState<ChatMessage[]>(() => {
+    const initial = readAgentLanguage();
+    return initial ? [{ id: "greeting", role: "assistant", text: GREETINGS[initial] }] : [];
+  });
 
   const [transcribing, setTranscribing] = useState(false);
   const [voiceSupported] = useState(() => isVoiceSupported());
@@ -93,6 +125,32 @@ export function ShoppingAssistant() {
   }, [open]);
 
   /**
+   * Picking a language starts a clean conversation: replying in Hindi on top
+   * of an English-language history the model can already see would be a
+   * confusing half-switch, so any existing server-side session is dropped
+   * along with the visible transcript.
+   */
+  const chooseLanguage = useCallback(
+    (lang: AgentLanguage) => {
+      writeAgentLanguage(lang);
+      speech.stop();
+      recorder.cancel();
+      void resetAgentConversation(readSessionId()).catch(() => undefined);
+
+      const greetingMessages: ChatMessage[] = [
+        { id: "greeting", role: "assistant", text: GREETINGS[lang] },
+      ];
+      const voiceNote = NO_VOICE_NOTES[lang];
+      if (voiceNote && speech.supported && !speech.hasVoiceFor(lang)) {
+        greetingMessages.push({ id: "voice-note", role: "assistant", text: voiceNote });
+      }
+      setMessages(greetingMessages);
+      setLanguage(lang);
+    },
+    [speech, recorder],
+  );
+
+  /**
    * `spoken` marks a turn that came from the microphone. Only those get read
    * back: speaking a reply to someone who typed would be startling, especially
    * if they are browsing somewhere quiet.
@@ -106,8 +164,9 @@ export function ShoppingAssistant() {
     setMessages((prev) => [...prev, { id: newId(), role: "user", text }]);
     setSending(true);
 
+    const activeLanguage = language ?? "en";
     try {
-      const reply = await sendAgentMessage(text, readSessionId());
+      const reply = await sendAgentMessage(text, readSessionId(), activeLanguage);
       setMessages((prev) => [
         ...prev,
         {
@@ -115,9 +174,10 @@ export function ShoppingAssistant() {
           role: "assistant",
           text: reply.reply,
           ...(reply.clientActions?.length ? { actions: reply.clientActions } : {}),
+          ...(reply.products?.length ? { products: reply.products } : {}),
         },
       ]);
-      if (spoken) speech.speak(reply.reply);
+      if (spoken) speech.speak(reply.reply, activeLanguage);
     } catch (err) {
       const status = (err as { status?: number })?.status;
       setMessages((prev) => [
@@ -136,7 +196,7 @@ export function ShoppingAssistant() {
       setSending(false);
     }
     },
-    [input, sending, speech],
+    [input, sending, speech, language],
   );
 
   /**
@@ -207,7 +267,7 @@ export function ShoppingAssistant() {
     let transcript: string;
     setTranscribing(true);
     try {
-      ({ transcript } = await transcribeAudio(blob, readSessionId()));
+      ({ transcript } = await transcribeAudio(blob, readSessionId(), language ?? "en"));
     } catch (err) {
       const status = (err as { status?: number })?.status;
       setMessages((prev) => [
@@ -241,7 +301,7 @@ export function ShoppingAssistant() {
     }
 
     await send(transcript, true);
-  }, [recorder, send]);
+  }, [recorder, send, language]);
 
   const toggleRecording = useCallback(() => {
     // Speaking over the assistant is the natural way to interrupt it.
@@ -267,8 +327,8 @@ export function ShoppingAssistant() {
     speech.stop();
     recorder.cancel();
     await resetAgentConversation(readSessionId()).catch(() => undefined);
-    setMessages([{ id: "greeting", role: "assistant", text: GREETING }]);
-  }, [speech, recorder]);
+    setMessages([{ id: "greeting", role: "assistant", text: GREETINGS[language ?? "en"] }]);
+  }, [speech, recorder, language]);
 
   if (!available) return null;
 
@@ -305,7 +365,18 @@ export function ShoppingAssistant() {
               </p>
             </div>
             <div className="flex items-center gap-1">
-              {speech.supported && (
+              {language && (
+                <button
+                  type="button"
+                  onClick={() => setLanguage(null)}
+                  aria-label="Change language"
+                  title="Change language"
+                  className="rounded-full p-2 transition-colors hover:bg-white/15"
+                >
+                  <Languages className="h-4 w-4" />
+                </button>
+              )}
+              {language && speech.supported && (
                 <button
                   type="button"
                   onClick={speech.toggleEnabled}
@@ -319,14 +390,16 @@ export function ShoppingAssistant() {
                   )}
                 </button>
               )}
-              <button
-                type="button"
-                onClick={reset}
-                aria-label="Start a new conversation"
-                className="rounded-full p-2 transition-colors hover:bg-white/15"
-              >
-                <RotateCcw className="h-4 w-4" />
-              </button>
+              {language && (
+                <button
+                  type="button"
+                  onClick={reset}
+                  aria-label="Start a new conversation"
+                  className="rounded-full p-2 transition-colors hover:bg-white/15"
+                >
+                  <RotateCcw className="h-4 w-4" />
+                </button>
+              )}
               <button
                 type="button"
                 onClick={() => setOpen(false)}
@@ -338,11 +411,46 @@ export function ShoppingAssistant() {
             </div>
           </header>
 
+          {!language ? (
+            <div className="flex flex-1 flex-col justify-center gap-3 overflow-y-auto bg-[var(--store-cream)] p-6">
+              <p className="text-center font-store-body text-sm font-semibold text-[var(--store-ink)]">
+                Choose a language / भाषा चुनें
+              </p>
+              {LANGUAGE_OPTIONS.map((option) => (
+                <button
+                  key={option.value}
+                  type="button"
+                  onClick={() => chooseLanguage(option.value)}
+                  className="flex w-full flex-col items-center gap-0.5 rounded-xl border border-black/10 bg-white px-4 py-3 transition-colors hover:border-[var(--store-red)] hover:bg-[var(--store-red)]/5"
+                >
+                  <span className="font-store-body text-base font-semibold text-[var(--store-ink)]">
+                    {option.label}
+                  </span>
+                  <span className="font-store-body text-[11px] text-[var(--store-muted)]">
+                    {option.sub}
+                  </span>
+                </button>
+              ))}
+              {readAgentLanguage() && (
+                <button
+                  type="button"
+                  onClick={() => setLanguage(readAgentLanguage())}
+                  className="mt-1 text-center font-store-body text-[12px] font-semibold text-[var(--store-muted)] underline underline-offset-2"
+                >
+                  Cancel
+                </button>
+              )}
+            </div>
+          ) : (
+            <>
           <div ref={scrollRef} className="flex-1 space-y-3 overflow-y-auto bg-[var(--store-cream)] p-4">
             {messages.map((message) => (
               <div
                 key={message.id}
-                className={cn("flex", message.role === "user" ? "justify-end" : "justify-start")}
+                className={cn(
+                  "flex flex-col gap-1.5",
+                  message.role === "user" ? "items-end" : "items-start",
+                )}
               >
                 <div
                   className={cn(
@@ -354,7 +462,7 @@ export function ShoppingAssistant() {
                         : "rounded-bl-sm border border-black/8 bg-white text-[var(--store-ink)]",
                   )}
                 >
-                  {message.text}
+                  <AgentMessageText text={message.text} onNavigate={() => setOpen(false)} />
 
                   {message.actions?.map((action) => (
                     <button
@@ -371,6 +479,16 @@ export function ShoppingAssistant() {
                     </button>
                   ))}
                 </div>
+
+                {message.products?.length ? (
+                  <div className="w-full max-w-[95%]">
+                    <AgentProductCards
+                      products={message.products}
+                      onAdded={() => undefined}
+                      onNavigate={() => setOpen(false)}
+                    />
+                  </div>
+                ) : null}
               </div>
             ))}
 
@@ -457,6 +575,8 @@ export function ShoppingAssistant() {
               <Send className="h-4 w-4" />
             </button>
           </form>
+            </>
+          )}
         </div>
       )}
     </>
