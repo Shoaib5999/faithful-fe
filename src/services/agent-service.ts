@@ -78,6 +78,48 @@ export const sendAgentMessage = async (
   return reply;
 };
 
+export interface AgentTranscript {
+  sessionId: string;
+  transcript: string;
+  empty?: boolean;
+}
+
+/**
+ * Pick a recording format this browser can actually produce.
+ *
+ * Chrome and Firefox give WebM/Opus; Safari only offers MP4/AAC. Asking for an
+ * unsupported type makes MediaRecorder throw, so the type is negotiated rather
+ * than assumed.
+ */
+export const pickAudioMimeType = (): string | null => {
+  if (typeof MediaRecorder === "undefined") return null;
+  const candidates = [
+    "audio/webm;codecs=opus",
+    "audio/webm",
+    "audio/mp4",
+    "audio/ogg;codecs=opus",
+  ];
+  return candidates.find((t) => MediaRecorder.isTypeSupported(t)) ?? null;
+};
+
+export const isVoiceSupported = (): boolean =>
+  typeof navigator !== "undefined" &&
+  Boolean(navigator.mediaDevices?.getUserMedia) &&
+  pickAudioMimeType() !== null;
+
+export const transcribeAudio = async (
+  blob: Blob,
+  sessionId: string | null,
+): Promise<AgentTranscript> => {
+  const form = new FormData();
+  form.append("audio", blob, "speech");
+  if (sessionId) form.append("sessionId", sessionId);
+
+  const result = await api.post<AgentTranscript>("/agent/transcribe", form);
+  if (result?.sessionId) writeSessionId(result.sessionId);
+  return result;
+};
+
 export const resetAgentConversation = async (
   sessionId: string | null,
 ): Promise<void> => {

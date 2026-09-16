@@ -1,15 +1,29 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Loader2, MessageCircle, RotateCcw, Send, X } from "lucide-react";
+import {
+  Loader2,
+  MessageCircle,
+  Mic,
+  RotateCcw,
+  Send,
+  Square,
+  Volume2,
+  VolumeX,
+  X,
+} from "lucide-react";
 
 import { useCartActions } from "@/context/CartContext";
 import { cn } from "@/lib/utils";
 import {
   fetchAgentStatus,
+  isVoiceSupported,
   readSessionId,
   resetAgentConversation,
   sendAgentMessage,
+  transcribeAudio,
   type AgentClientAction,
 } from "@/services/agent-service";
+import { useSpeech } from "@/hooks/useSpeech";
+import { useVoiceRecorder } from "@/hooks/useVoiceRecorder";
 
 /**
  * Floating shopping assistant.
@@ -45,6 +59,12 @@ export function ShoppingAssistant() {
     { id: "greeting", role: "assistant", text: GREETING },
   ]);
 
+  const [transcribing, setTranscribing] = useState(false);
+  const [voiceSupported] = useState(() => isVoiceSupported());
+
+  const recorder = useVoiceRecorder();
+  const speech = useSpeech();
+
   const scrollRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -72,11 +92,17 @@ export function ShoppingAssistant() {
     if (open) inputRef.current?.focus();
   }, [open]);
 
-  const send = useCallback(async () => {
-    const text = input.trim();
+  /**
+   * `spoken` marks a turn that came from the microphone. Only those get read
+   * back: speaking a reply to someone who typed would be startling, especially
+   * if they are browsing somewhere quiet.
+   */
+  const send = useCallback(
+    async (messageText?: string, spoken = false) => {
+    const text = (messageText ?? input).trim();
     if (!text || sending) return;
 
-    setInput("");
+    if (messageText === undefined) setInput("");
     setMessages((prev) => [...prev, { id: newId(), role: "user", text }]);
     setSending(true);
 
@@ -91,6 +117,7 @@ export function ShoppingAssistant() {
           ...(reply.clientActions?.length ? { actions: reply.clientActions } : {}),
         },
       ]);
+      if (spoken) speech.speak(reply.reply);
     } catch (err) {
       const status = (err as { status?: number })?.status;
       setMessages((prev) => [
@@ -108,7 +135,9 @@ export function ShoppingAssistant() {
     } finally {
       setSending(false);
     }
-  }, [input, sending]);
+    },
+    [input, sending, speech],
+  );
 
   /**
    * Apply a guest cart addition. The agent cannot write to a guest's cart, so it
@@ -161,10 +190,85 @@ export function ShoppingAssistant() {
     [addItem, openCart],
   );
 
+  /**
+   * Stop recording, transcribe, and send in one gesture.
+   *
+   * The transcript is shown as the customer's own message before the reply
+   * arrives, so a misheard request is visible rather than silently answered.
+   */
+  const finishRecording = useCallback(async () => {
+    const blob = await recorder.stop();
+    if (!blob) return;
+
+    // Transcription and the agent call are two separate waits, and the
+    // "Transcribing…" indicator must end when transcription does — otherwise it
+    // sits on screen alongside "Checking…" for the whole reply, implying the
+    // recording is still being processed when it finished seconds earlier.
+    let transcript: string;
+    setTranscribing(true);
+    try {
+      ({ transcript } = await transcribeAudio(blob, readSessionId()));
+    } catch (err) {
+      const status = (err as { status?: number })?.status;
+      setMessages((prev) => [
+        ...prev,
+        {
+          id: newId(),
+          role: "assistant",
+          failed: true,
+          text:
+            status === 429
+              ? "I'm getting a lot of messages right now — give me a moment and try again."
+              : "I couldn't make out that recording. Please try again.",
+        },
+      ]);
+      return;
+    } finally {
+      setTranscribing(false);
+    }
+
+    if (!transcript) {
+      setMessages((prev) => [
+        ...prev,
+        {
+          id: newId(),
+          role: "assistant",
+          failed: true,
+          text: "I didn't catch that. Try again, a little closer to the mic.",
+        },
+      ]);
+      return;
+    }
+
+    await send(transcript, true);
+  }, [recorder, send]);
+
+  const toggleRecording = useCallback(() => {
+    // Speaking over the assistant is the natural way to interrupt it.
+    speech.stop();
+    if (recorder.isRecording) void finishRecording();
+    else void recorder.start();
+  }, [recorder, finishRecording, speech]);
+
+  // Surface recorder problems in the conversation rather than a silent no-op.
+  useEffect(() => {
+    if (!recorder.error) return;
+    const text =
+      recorder.error === "permission-denied"
+        ? "I need microphone access to hear you. Enable it in your browser settings, or just type instead."
+        : recorder.error === "unsupported"
+          ? "Voice input isn't supported in this browser, but you can type."
+          : "Something went wrong with the microphone. Please try again.";
+    setMessages((prev) => [...prev, { id: newId(), role: "assistant", failed: true, text }]);
+    recorder.clearError();
+  }, [recorder]);
+
   const reset = useCallback(async () => {
+    speech.stop();
+    recorder.cancel();
     await resetAgentConversation(readSessionId()).catch(() => undefined);
     setMessages([{ id: "greeting", role: "assistant", text: GREETING }]);
-  }, []);
+  }, [speech, recorder]);
 
   if (!available) return null;
 
@@ -201,6 +305,20 @@ export function ShoppingAssistant() {
               </p>
             </div>
             <div className="flex items-center gap-1">
+              {speech.supported && (
+                <button
+                  type="button"
+                  onClick={speech.toggleEnabled}
+                  aria-label={speech.enabled ? "Mute spoken replies" : "Unmute spoken replies"}
+                  className="rounded-full p-2 transition-colors hover:bg-white/15"
+                >
+                  {speech.enabled ? (
+                    <Volume2 className="h-4 w-4" />
+                  ) : (
+                    <VolumeX className="h-4 w-4" />
+                  )}
+                </button>
+              )}
               <button
                 type="button"
                 onClick={reset}
@@ -256,6 +374,31 @@ export function ShoppingAssistant() {
               </div>
             ))}
 
+            {recorder.isRecording && (
+              <div className="flex justify-end">
+                <div className="flex items-center gap-2 rounded-2xl rounded-br-sm bg-[var(--store-red)] px-3.5 py-2.5 text-white">
+                  <span className="relative flex h-2.5 w-2.5">
+                    <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-white opacity-75" />
+                    <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-white" />
+                  </span>
+                  <span className="font-store-body text-[13px]">
+                    Listening… {recorder.elapsed}s
+                  </span>
+                </div>
+              </div>
+            )}
+
+            {transcribing && (
+              <div className="flex justify-end">
+                <div className="flex items-center gap-2 rounded-2xl rounded-br-sm border border-black/8 bg-white px-3.5 py-2.5">
+                  <Loader2 className="h-3.5 w-3.5 animate-spin text-[var(--store-red)]" />
+                  <span className="font-store-body text-[13px] text-[var(--store-muted)]">
+                    Transcribing…
+                  </span>
+                </div>
+              </div>
+            )}
+
             {sending && (
               <div className="flex justify-start">
                 <div className="flex items-center gap-2 rounded-2xl rounded-bl-sm border border-black/8 bg-white px-3.5 py-2.5">
@@ -279,13 +422,35 @@ export function ShoppingAssistant() {
               ref={inputRef}
               value={input}
               onChange={(e) => setInput(e.target.value)}
-              placeholder="Ask about any cut, price or order…"
+              placeholder={recorder.isRecording ? "Listening…" : "Ask about any cut, price or order…"}
               maxLength={2000}
-              className="min-w-0 flex-1 rounded-full border border-black/15 px-4 py-2.5 font-store-body text-[13px] outline-none focus:border-[var(--store-red)]"
+              disabled={recorder.isRecording || transcribing}
+              className="min-w-0 flex-1 rounded-full border border-black/15 px-4 py-2.5 font-store-body text-[13px] outline-none focus:border-[var(--store-red)] disabled:bg-black/5"
             />
+
+            {voiceSupported && (
+              <button
+                type="button"
+                onClick={toggleRecording}
+                disabled={sending || transcribing}
+                aria-label={recorder.isRecording ? "Stop recording and send" : "Record a voice message"}
+                className={cn(
+                  "flex h-10 w-10 shrink-0 items-center justify-center rounded-full transition-colors disabled:opacity-40",
+                  recorder.isRecording
+                    ? "bg-red-600 text-white"
+                    : "border border-black/15 text-[var(--store-ink)] hover:border-[var(--store-red)] hover:text-[var(--store-red)]",
+                )}
+              >
+                {recorder.isRecording ? (
+                  <Square className="h-4 w-4 fill-current" />
+                ) : (
+                  <Mic className="h-4 w-4" />
+                )}
+              </button>
+            )}
             <button
               type="submit"
-              disabled={!input.trim() || sending}
+              disabled={!input.trim() || sending || recorder.isRecording || transcribing}
               aria-label="Send message"
               className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[var(--store-red)] text-white transition-opacity disabled:opacity-40"
             >
