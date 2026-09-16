@@ -43,8 +43,20 @@ type CartActionsValue = {
   removeItem: (id: string) => Promise<void>;
   clear: () => Promise<void>;
   refreshCart: (coupon?: string, shippingMethod?: string) => Promise<StoreCartSummary | null>;
-  openCart: () => void;
-  onOpenCart: (cb: () => void) => () => void;
+  openCart: (options?: CartOpenOptions) => void;
+  onOpenCart: (cb: (options?: CartOpenOptions) => void) => () => void;
+};
+
+/**
+ * How the cart was opened. The assistant hands a customer over to the cart
+ * after it has added something for them, and asks for `guide` so the drawer
+ * points out what to do next rather than dropping them into it cold. `hint`
+ * carries the wording, because the assistant knows which language the
+ * customer chose and the cart does not.
+ */
+export type CartOpenOptions = {
+  guide?: boolean;
+  hint?: string;
 };
 
 type CartStateValue = {
@@ -97,7 +109,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
   const [items, setItems] = useState<CartItem[]>(() => loadGuestCart());
   const [summary, setSummary] = useState<StoreCartSummary | null>(null);
   const [isCartLoading, setIsCartLoading] = useState(false);
-  const [openListeners] = useState<Set<() => void>>(() => new Set());
+  const [openListeners] = useState<Set<(options?: CartOpenOptions) => void>>(() => new Set());
   const prevLoggedRef = useRef(isLoggedIn);
   const skipNextGuestPersist = useRef(false);
 
@@ -316,12 +328,15 @@ export function CartProvider({ children }: { children: ReactNode }) {
     persistGuestCart([]);
   }, [isLoggedIn, syncCartFromServer]);
 
-  const openCart = useCallback(() => {
-    openListeners.forEach((cb) => cb());
-  }, [openListeners]);
+  const openCart = useCallback(
+    (options?: CartOpenOptions) => {
+      openListeners.forEach((cb) => cb(options));
+    },
+    [openListeners],
+  );
 
   const onOpenCart = useCallback(
-    (cb: () => void) => {
+    (cb: (options?: CartOpenOptions) => void) => {
       openListeners.add(cb);
       return () => {
         openListeners.delete(cb);

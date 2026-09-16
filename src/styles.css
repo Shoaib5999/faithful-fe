@@ -692,3 +692,104 @@
     bottom: calc(2.25rem + 4.25rem);
   }
 }
+
+/* Both floating buttons sit far above any drawer in the stacking order, so
+   while one is open they would otherwise cover its content — in the cart's
+   case, right over the line the assistant just asked the customer to read. */
+body.store-drawer-open .store-fab-assistant,
+body.store-drawer-open .store-fab-above-bottom-nav {
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* ── AI assistant launcher ───────────────────────────────────────────────────
+   A flat red circle read as "yet another support widget" sitting under the
+   WhatsApp button. This is the only surface that has to announce there is an
+   assistant behind it, so it gets a moving gradient and a breathing glow. Both
+   animate properties that do not trigger layout, and both are dropped for
+   anyone who asked for reduced motion. */
+.store-ai-launcher {
+  background-image: linear-gradient(
+    115deg,
+    #9e1f14 0%,
+    #d32b1e 34%,
+    #f0762c 62%,
+    #d32b1e 100%
+  );
+  background-size: 220% 220%;
+  animation:
+    store-ai-sheen 7s ease-in-out infinite,
+    store-ai-glow 2.9s ease-in-out infinite;
+}
+
+@keyframes store-ai-sheen {
+  0%,
+  100% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+}
+
+@keyframes store-ai-glow {
+  0%,
+  100% {
+    box-shadow:
+      0 8px 24px -6px rgba(211, 43, 30, 0.55),
+      0 0 0 0 rgba(211, 43, 30, 0.4);
+  }
+  50% {
+    box-shadow:
+      0 10px 28px -6px rgba(211, 43, 30, 0.75),
+      0 0 0 9px rgba(211, 43, 30, 0);
+  }
+}
+
+/* Called out when the assistant sends someone to the cart and tells them what
+   to do next. It pulses a few times and settles — a permanent ring would read
+   as a validation error rather than a pointer. */
+.store-guide-highlight {
+  /* The ripple catches the eye, then fades; the outline is what still marks
+     the control a few seconds later when the customer is actually looking. */
+  outline: 2px solid rgba(211, 43, 30, 0.55);
+  outline-offset: 2px;
+  animation: store-guide-pulse 1.5s ease-out 4;
+}
+
+@keyframes store-guide-pulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(211, 43, 30, 0.5);
+  }
+  70% {
+    box-shadow: 0 0 0 11px rgba(211, 43, 30, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(211, 43, 30, 0);
+  }
+}
+
+/* The label swaps languages on a timer; fading each one in stops it reading as
+   a glitch. Keyed on the text in React, so the animation replays per change. */
+.store-ai-launcher-label {
+  animation: store-ai-label-in 400ms ease-out;
+}
+
+@keyframes store-ai-label-in {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .store-ai-launcher,
+  .store-ai-launcher-label,
+  .store-guide-highlight {
+    animation: none;
+  }
+}

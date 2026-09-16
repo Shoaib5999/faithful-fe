@@ -560,6 +560,9 @@ function MobileTopBar({
 
 export function StoreNavbar() {
   const [drawerView, setDrawerView] = useState<DrawerView>("none");
+  // Set only when the assistant hands the customer over mid-conversation, so
+  // the cart can point out the next step instead of opening silently.
+  const [cartHint, setCartHint] = useState<string | null>(null);
   const [searchOpen, setSearchOpen] = useState(false);
   const [isShopOpen, setIsShopOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
@@ -578,6 +581,7 @@ export function StoreNavbar() {
   // ── Close all panels ────────────────────────────────────────────────────────
   const closeAll = useCallback(() => {
     setDrawerView("none");
+    setCartHint(null);
     setSearchOpen(false);
     setIsShopOpen(false);
     closeAuth();
@@ -646,9 +650,10 @@ export function StoreNavbar() {
 
   // ── Side effects ─────────────────────────────────────────────────────────────
   useEffect(() => {
-    const unsub = onOpenCart(() => {
+    const unsub = onOpenCart((options) => {
       setSearchOpen(false);
       setIsShopOpen(false);
+      setCartHint(options?.guide ? (options.hint ?? "") : null);
       setDrawerView("cart");
     });
     return unsub;
@@ -708,6 +713,10 @@ export function StoreNavbar() {
     const lenis = window.__lenis;
     lenis?.stop();
 
+    // The floating action buttons outrank any drawer in the stacking order, so
+    // they have to stand down while one is open or they cover its content.
+    document.body.classList.add("store-drawer-open");
+
     const scrollY = window.scrollY;
     const pathnameAtLock = location.pathname;
     Object.assign(document.body.style, {
@@ -721,6 +730,7 @@ export function StoreNavbar() {
 
     return () => {
       lenis?.start();
+      document.body.classList.remove("store-drawer-open");
       Object.assign(document.body.style, {
         position: "",
         top: "",
@@ -855,6 +865,7 @@ export function StoreNavbar() {
         items={items}
         cartCount={cartCount}
         subtotal={subtotal}
+        guideHint={cartHint}
         onClose={closeAll}
         onCheckout={() => {
           navigate("/checkout");

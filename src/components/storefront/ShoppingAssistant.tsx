@@ -1,11 +1,12 @@
 import { useCallback, useEffect, useRef, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   Languages,
   Loader2,
-  MessageCircle,
   Mic,
   RotateCcw,
   Send,
+  Sparkles,
   Square,
   Volume2,
   VolumeX,
@@ -75,13 +76,41 @@ const LANGUAGE_OPTIONS: { value: AgentLanguage; label: string; sub: string }[] =
   { value: "hinglish", label: "Hinglish", sub: "Roman script mein Hindi" },
 ];
 
+/**
+ * Launcher wording. Before a language is chosen these cycle, which is also the
+ * clearest way to advertise that the assistant speaks more than English;
+ * afterwards it settles on the one the customer picked.
+ */
+const LAUNCHER_LABELS: { language: AgentLanguage; text: string }[] = [
+  { language: "en", text: "Ask AI" },
+  { language: "hi", text: "AI से पूछें" },
+  { language: "hinglish", text: "AI se pucho" },
+];
+
+/** Spoken when the assistant hands the customer over to the cart. */
+const CART_GUIDE_SPEECH: Record<AgentLanguage, string> = {
+  en: "I've put it in your bag. You can change the quantity there, or tap Checkout to carry on.",
+  hi: "मैंने इसे आपके बैग में डाल दिया है। आप वहाँ मात्रा बदल सकते हैं, या आगे बढ़ने के लिए चेकआउट दबाएँ।",
+  hinglish:
+    "Maine ise aapke bag mein daal diya hai. Aap wahan quantity badal sakte hain, ya aage badhne ke liye Checkout dabayein.",
+};
+
+/** The same guidance, shown in the cart itself for anyone with sound off. */
+const CART_GUIDE_HINT: Record<AgentLanguage, string> = {
+  en: "Change the quantity above, or tap Checkout to carry on.",
+  hi: "ऊपर मात्रा बदलें, या आगे बढ़ने के लिए चेकआउट दबाएँ।",
+  hinglish: "Upar quantity badlein, ya aage badhne ke liye Checkout dabayein.",
+};
+
 const newId = () => Math.random().toString(36).slice(2, 10);
 
 export function ShoppingAssistant() {
   const { addItem, openCart } = useCartActions();
+  const navigate = useNavigate();
 
   const [available, setAvailable] = useState(false);
   const [open, setOpen] = useState(false);
+  const [labelIndex, setLabelIndex] = useState(0);
   const [language, setLanguage] = useState<AgentLanguage | null>(() => readAgentLanguage());
   const [input, setInput] = useState("");
   const [sending, setSending] = useState(false);
@@ -124,6 +153,16 @@ export function ShoppingAssistant() {
     if (open) inputRef.current?.focus();
   }, [open]);
 
+  // Cycle the launcher wording only while it is on screen and undecided.
+  useEffect(() => {
+    if (open || language) return;
+    const id = window.setInterval(
+      () => setLabelIndex((i) => (i + 1) % LAUNCHER_LABELS.length),
+      3200,
+    );
+    return () => window.clearInterval(id);
+  }, [open, language]);
+
   /**
    * Picking a language starts a clean conversation: replying in Hindi on top
    * of an English-language history the model can already see would be a
@@ -149,6 +188,30 @@ export function ShoppingAssistant() {
     },
     [speech, recorder],
   );
+
+  /**
+   * Hand the customer over to the cart once the assistant has added something
+   * for them, saying out loud what they can do next and asking the cart to
+   * point at the same two controls. The panel is fullscreen on a phone, so it
+   * has to get out of the way first or the cart opens behind it.
+   *
+   * Speaking here is deliberate even for a customer who has only been typing:
+   * this is a hand-off away from the conversation, and it is the one moment
+   * they are being asked to act somewhere else on the page. The mute control
+   * in the header still silences it.
+   */
+  const guideToCart = useCallback(() => {
+    const lang = language ?? "en";
+    speech.speak(CART_GUIDE_SPEECH[lang], lang);
+    setOpen(false);
+    openCart({ guide: true, hint: CART_GUIDE_HINT[lang] });
+  }, [language, speech, openCart]);
+
+  const goToCheckout = useCallback(() => {
+    speech.stop();
+    setOpen(false);
+    navigate("/checkout");
+  }, [speech, navigate]);
 
   /**
    * `spoken` marks a turn that came from the microphone. Only those get read
@@ -228,11 +291,7 @@ export function ShoppingAssistant() {
               : m,
           ),
         );
-        // Close the panel before opening the cart: on a phone this widget is
-        // fullscreen, so leaving it open would completely hide the cart drawer
-        // the customer was just sent to. The conversation is preserved.
-        setOpen(false);
-        openCart();
+        guideToCart();
       } catch {
         setMessages((prev) => [
           ...prev,
@@ -247,7 +306,7 @@ export function ShoppingAssistant() {
         setApplyingAction(null);
       }
     },
-    [addItem, openCart],
+    [addItem, guideToCart],
   );
 
   /**
@@ -332,6 +391,10 @@ export function ShoppingAssistant() {
 
   if (!available) return null;
 
+  const launcherLabel = language
+    ? (LAUNCHER_LABELS.find((l) => l.language === language) ?? LAUNCHER_LABELS[0]).text
+    : LAUNCHER_LABELS[labelIndex].text;
+
   return (
     <>
       {/* Launcher — sits above the WhatsApp button so the two never overlap. */}
@@ -340,9 +403,17 @@ export function ShoppingAssistant() {
           type="button"
           onClick={() => setOpen(true)}
           aria-label="Open shopping assistant"
-          className="store-fab-assistant fixed right-5 z-[9998] flex h-14 w-14 items-center justify-center rounded-full bg-[var(--store-red)] text-white shadow-lg transition-transform hover:scale-110 hover:shadow-xl lg:right-9"
+          className="store-fab-assistant store-ai-launcher fixed right-5 z-[9998] flex items-center gap-2 rounded-full py-2.5 pl-2.5 pr-4 text-white transition-transform hover:scale-105 active:scale-95 lg:right-9"
         >
-          <MessageCircle className="h-7 w-7" strokeWidth={1.75} />
+          <span className="flex h-8 w-8 items-center justify-center rounded-full bg-white/20">
+            <Sparkles className="h-4 w-4" strokeWidth={2.25} />
+          </span>
+          <span
+            key={launcherLabel}
+            className="store-ai-launcher-label whitespace-nowrap font-store-body text-[13px] font-semibold tracking-wide"
+          >
+            {launcherLabel}
+          </span>
         </button>
       )}
 
@@ -484,7 +555,9 @@ export function ShoppingAssistant() {
                   <div className="w-full max-w-[95%]">
                     <AgentProductCards
                       products={message.products}
-                      onAdded={() => undefined}
+                      language={language ?? "en"}
+                      onCheckout={guideToCart}
+                      onBuyNow={goToCheckout}
                       onNavigate={() => setOpen(false)}
                     />
                   </div>

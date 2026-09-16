@@ -10,6 +10,13 @@ type StoreCartDrawerProps = {
   items: CartItem[];
   cartCount: number;
   subtotal: number;
+  /**
+   * Wording supplied by the assistant when it sends a customer here after
+   * adding something for them. When set, the two things they can do next —
+   * change the quantity, or check out — are visibly called out. An empty
+   * string still guides, just without the sentence.
+   */
+  guideHint?: string | null;
   onClose: () => void;
   onCheckout: () => void;
   onContinueShopping: () => void;
@@ -22,12 +29,15 @@ export function StoreCartDrawer({
   items,
   cartCount,
   subtotal,
+  guideHint,
   onClose,
   onCheckout,
   onContinueShopping,
   onRemoveItem,
   onSetItemQty,
 }: StoreCartDrawerProps) {
+  const guiding = guideHint != null && items.length > 0;
+
   return (
     <aside
       className={cn(
@@ -96,11 +106,13 @@ export function StoreCartDrawer({
                       </p>
                     )}
                     <div className="mt-2.5 flex flex-wrap items-center gap-2">
-                      <CartLineQtyControl
-                        qty={it.qty}
-                        maxQty={it.stockQty ?? 99}
-                        onQtyChange={(nextQty) => void onSetItemQty(it.id, nextQty)}
-                      />
+                      <div className={cn("inline-flex rounded-md", guiding && "store-guide-highlight")}>
+                        <CartLineQtyControl
+                          qty={it.qty}
+                          maxQty={it.stockQty ?? 99}
+                          onQtyChange={(nextQty) => void onSetItemQty(it.id, nextQty)}
+                        />
+                      </div>
                       <button
                         type="button"
                         onClick={() => void onRemoveItem(it.id)}
@@ -137,7 +149,18 @@ export function StoreCartDrawer({
             <p className="mt-1 font-store-body text-[11px] text-[var(--store-muted)]">
               Shipping & taxes calculated at checkout
             </p>
-            <StorePrimaryButton type="button" onClick={onCheckout} className="mt-4 w-full py-3.5">
+
+            {guiding && guideHint ? (
+              <p className="mt-3 rounded-lg bg-[var(--store-red)]/8 px-3 py-2 font-store-body text-[12px] font-medium leading-snug text-[var(--store-ink)]">
+                {guideHint}
+              </p>
+            ) : null}
+
+            <StorePrimaryButton
+              type="button"
+              onClick={onCheckout}
+              className={cn("mt-4 w-full py-3.5", guiding && "store-guide-highlight")}
+            >
               Checkout
             </StorePrimaryButton>
             <Link
